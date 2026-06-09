@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>アップロードテスト</title>
+<style>
+  body { font-family: sans-serif; padding: 40px; max-width: 600px; }
+  .section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+  h2 { margin-top: 0; }
+  button { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
+  .result { margin-top: 10px; padding: 10px; background: #f1f5f9; border-radius: 4px; font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>アップロードテスト</h1>
+
+<div class="section">
+  <h2>① アポイントリスト（.xlsx）</h2>
+  <input type="file" id="apo_file" accept=".xlsx"><br><br>
+  <button onclick="upload('apo')">アップロード</button>
+  <div class="result" id="apo_result">-</div>
+</div>
+
+<div class="section">
+  <h2>② 生産性レポート（.csv）</h2>
+  <input type="file" id="prod_file" accept=".csv"><br><br>
+  <button onclick="upload('prod')">アップロード</button>
+  <div class="result" id="prod_result">-</div>
+</div>
+
+<div class="section">
+  <h2>③ jinjer勤怠データ（.csv）</h2>
+  <input type="file" id="att_file" accept=".csv"><br><br>
+  <button onclick="upload('att')">アップロード</button>
+  <div class="result" id="att_result">-</div>
+</div>
+
+<script>
+const BASE_URL = "https://digross-server.onrender.com";
+
+const config = {
+  apo:  { endpoint: "/staff/upload/appointments", fileId: "apo_file",  resultId: "apo_result" },
+  prod: { endpoint: "/staff/upload/productivity",  fileId: "prod_file", resultId: "prod_result" },
+  att:  { endpoint: "/staff/upload/attendance",    fileId: "att_file",  resultId: "att_result" }
+};
+
+async function upload(type) {
+  const { endpoint, fileId, resultId } = config[type];
+  const fileInput = document.getElementById(fileId);
+  const resultDiv = document.getElementById(resultId);
+
+  if (!fileInput.files[0]) {
+    resultDiv.textContent = "ファイルを選択してください";
+    return;
+  }
+
+  resultDiv.textContent = "アップロード中...";
+
+  const formData = new FormData();
+  formData.append("file", fileInput.files[0]);
+
+  try {
+    const res = await fetch(BASE_URL + endpoint, {
+      method: "POST",
+      body: formData
+    });
+    const data = await res.json();
+    resultDiv.textContent = JSON.stringify(data);
+  } catch (e) {
+    resultDiv.textContent = "エラー: " + e.message;
+  }
+}
+</script>
+</body>
+</html>
