@@ -8,20 +8,20 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #0f0f13; color: #e2e2e8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; }
 
-  /* ヘッダー */
   .header { background: #16161e; border-bottom: 1px solid #2a2a35; padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 24px; position: sticky; top: 0; z-index: 100; }
   .header-title { font-size: 15px; font-weight: 600; color: #fff; white-space: nowrap; }
   .header-divider { width: 1px; height: 20px; background: #2a2a35; }
-  .header-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .header-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex: 1; }
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .logout-btn { background: transparent; border: 1px solid #2a2a35; color: #888; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+  .logout-btn:hover { border-color: #4a4a5a; color: #e2e2e8; }
 
   select, input[type="month"] {
     background: #1e1e28; border: 1px solid #2a2a35; color: #e2e2e8;
-    padding: 6px 10px; border-radius: 6px; font-size: 13px; cursor: pointer;
-    outline: none;
+    padding: 6px 10px; border-radius: 6px; font-size: 13px; cursor: pointer; outline: none;
   }
   select:hover, input[type="month"]:hover { border-color: #4a4a5a; }
 
-  /* アップロードセクション */
   .upload-section { background: #16161e; border-bottom: 1px solid #2a2a35; padding: 12px 24px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
   .upload-item { display: flex; align-items: center; gap: 8px; }
   .upload-label { font-size: 12px; color: #888; white-space: nowrap; }
@@ -34,27 +34,25 @@
   .update-btn:disabled { background: #2a2a35; color: #666; cursor: not-allowed; }
   .status-msg { font-size: 12px; color: #888; }
 
-  /* サマリーバー */
   .summary-bar { padding: 12px 24px; display: flex; gap: 24px; border-bottom: 1px solid #2a2a35; }
   .summary-item { display: flex; flex-direction: column; gap: 2px; }
   .summary-label { font-size: 11px; color: #666; }
   .summary-value { font-size: 18px; font-weight: 600; color: #fff; }
 
-  /* テーブル */
   .table-wrap { padding: 16px 24px; overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; }
   th { background: #16161e; color: #888; font-size: 11px; font-weight: 500; text-align: left; padding: 8px 12px; border-bottom: 1px solid #2a2a35; white-space: nowrap; cursor: pointer; user-select: none; }
   th:hover { color: #e2e2e8; }
   td { padding: 10px 12px; border-bottom: 1px solid #1e1e28; white-space: nowrap; font-size: 13px; }
   tr:hover td { background: #1a1a24; }
+  .staff-link { color: #5a9cf8; text-decoration: none; cursor: pointer; }
+  .staff-link:hover { text-decoration: underline; }
 
-  /* 達成率バー */
   .rate-cell { display: flex; align-items: center; gap: 8px; }
   .rate-bar-bg { width: 80px; height: 4px; background: #2a2a35; border-radius: 2px; overflow: hidden; }
   .rate-bar { height: 100%; border-radius: 2px; transition: width 0.3s; }
   .rate-text { font-size: 13px; font-weight: 500; min-width: 45px; }
 
-  /* ランクバッジ */
   .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
   .badge-top { background: #2d1f5e; color: #a78bfa; }
   .badge-middle { background: #1f3a5e; color: #60a5fa; }
@@ -62,14 +60,27 @@
   .badge-rookie { background: #1a2a1a; color: #6ee7b7; }
   .badge-manager { background: #3a2a1a; color: #fbbf24; }
   .badge-staff { background: #2a2a2a; color: #9ca3af; }
-
-  /* 月給制 */
   .monthly-tag { font-size: 10px; color: #888; background: #2a2a35; padding: 1px 5px; border-radius: 3px; margin-left: 4px; }
 
-  /* ローディング */
-  .loading { text-align: center; padding: 60px; color: #666; }
+  /* モーダル */
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; }
+  .modal-overlay.active { display: flex; }
+  .modal { background: #16161e; border: 1px solid #2a2a35; border-radius: 12px; padding: 32px; width: 100%; max-width: 480px; }
+  .modal-title { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 24px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 12px; color: #888; margin-bottom: 6px; display: block; }
+  .form-input { width: 100%; background: #1e1e28; border: 1px solid #2a2a35; color: #e2e2e8; padding: 8px 12px; border-radius: 6px; font-size: 13px; outline: none; }
+  .form-input:focus { border-color: #5a9cf8; }
+  .modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 24px; }
+  .btn-cancel { background: transparent; border: 1px solid #2a2a35; color: #888; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .btn-submit { background: #5a9cf8; border: none; color: #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; }
+  .btn-submit:disabled { background: #2a2a35; color: #666; cursor: not-allowed; }
+  .modal-msg { font-size: 12px; margin-top: 8px; text-align: center; }
 
-  /* 数値 */
+  .register-btn { background: #1e1e28; border: 1px solid #2a2a35; color: #e2e2e8; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+  .register-btn:hover { border-color: #5a9cf8; color: #5a9cf8; }
+
+  .loading { text-align: center; padding: 60px; color: #666; }
   .num { font-variant-numeric: tabular-nums; }
   .num-green { color: #34d399; }
   .num-yellow { color: #fbbf24; }
@@ -100,6 +111,10 @@
       <option value="管理者">管理者</option>
       <option value="社員">社員</option>
     </select>
+  </div>
+  <div class="header-right">
+    <button class="register-btn" onclick="openRegisterModal()">＋ スタッフ登録</button>
+    <button class="logout-btn" onclick="logout()">ログアウト</button>
   </div>
 </div>
 
@@ -147,6 +162,41 @@
   </table>
 </div>
 
+<!-- スタッフ登録モーダル -->
+<div class="modal-overlay" id="register-modal">
+  <div class="modal">
+    <div class="modal-title">スタッフ登録</div>
+    <div class="form-group">
+      <label class="form-label">社員番号</label>
+      <input class="form-input" id="reg-staff-id" placeholder="例：D0000001">
+    </div>
+    <div class="form-group">
+      <label class="form-label">スタッフ名</label>
+      <input class="form-input" id="reg-staff-name" placeholder="例：山田太郎0101">
+    </div>
+    <div class="form-group">
+      <label class="form-label">ログインID</label>
+      <input class="form-input" id="reg-login-id" placeholder="例：yamada">
+    </div>
+    <div class="form-group">
+      <label class="form-label">パスワード</label>
+      <input class="form-input" type="password" id="reg-password" placeholder="8文字以上">
+    </div>
+    <div class="form-group">
+      <label class="form-label">ロール</label>
+      <select class="form-input" id="reg-role">
+        <option value="staff">スタッフ</option>
+        <option value="admin">管理者</option>
+      </select>
+    </div>
+    <div class="modal-msg" id="reg-msg"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeRegisterModal()">キャンセル</button>
+      <button class="btn-submit" id="reg-submit" onclick="registerStaff()">登録</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 <script>
@@ -155,10 +205,15 @@ let allData = [];
 let sortKey = "achieve_rate";
 let sortDir = -1;
 
-// Renderウォームアップ
+// 認証ガード
+const token = localStorage.getItem("staff_token");
+const role = localStorage.getItem("staff_role");
+if (!token || role !== "admin") {
+  window.location.href = "login.html";
+}
+
 fetch(BASE_URL + "/health_staff").catch(() => {});
 
-// ファイル選択表示
 document.getElementById("apo-file").addEventListener("change", e => {
   document.getElementById("apo-name").textContent = e.target.files[0]?.name || "未選択";
 });
@@ -169,12 +224,61 @@ document.getElementById("att-file").addEventListener("change", e => {
   document.getElementById("att-name").textContent = e.target.files[0]?.name || "未選択";
 });
 
-// フィルター変更
 document.getElementById("month-select").addEventListener("change", loadData);
 document.getElementById("site-filter").addEventListener("change", renderTable);
 document.getElementById("rank-filter").addEventListener("change", renderTable);
 
-// データ読み込み
+function logout() {
+  localStorage.clear();
+  window.location.href = "login.html";
+}
+
+function openRegisterModal() {
+  document.getElementById("register-modal").classList.add("active");
+}
+
+function closeRegisterModal() {
+  document.getElementById("register-modal").classList.remove("active");
+  document.getElementById("reg-msg").textContent = "";
+}
+
+async function registerStaff() {
+  const btn = document.getElementById("reg-submit");
+  const msg = document.getElementById("reg-msg");
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`${BASE_URL}/staff/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        staff_id: document.getElementById("reg-staff-id").value.trim(),
+        staff_name: document.getElementById("reg-staff-name").value.trim(),
+        login_id: document.getElementById("reg-login-id").value.trim(),
+        password: document.getElementById("reg-password").value.trim(),
+        role: document.getElementById("reg-role").value
+      })
+    });
+    const data = await res.json();
+    if (data.error) {
+      msg.style.color = "#f87171";
+      msg.textContent = data.error;
+    } else {
+      msg.style.color = "#34d399";
+      msg.textContent = "登録完了しました";
+      setTimeout(closeRegisterModal, 1500);
+    }
+  } catch(e) {
+    msg.style.color = "#f87171";
+    msg.textContent = "通信エラー";
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 async function loadData() {
   const month = document.getElementById("month-select").value;
   document.getElementById("loading").style.display = "block";
@@ -210,6 +314,7 @@ function renderTable() {
 
   renderSummary(data);
 
+  const month = document.getElementById("month-select").value;
   const tbody = document.getElementById("table-body");
   tbody.innerHTML = data.map(d => {
     const rate = d.achieve_rate ?? 0;
@@ -218,10 +323,9 @@ function renderTable() {
     const barWidth = Math.min(rate, 150);
     const rankBadge = getRankBadge(d.rank);
     const monthlyTag = d.is_monthly ? '<span class="monthly-tag">月給</span>' : "";
-    const remain = d.target_achieve > 0 ? d.target_achieve - d.sales : null;
 
     return `<tr>
-      <td>${d.name}${monthlyTag}</td>
+      <td><a class="staff-link" href="staff.html?id=${d.staff_id}&month=${month}">${d.name}</a>${monthlyTag}</td>
       <td><span class="badge ${rankBadge.cls}">${rankBadge.label}</span></td>
       <td>${d.site}</td>
       <td class="num">${fmt(d.sales)}</td>
@@ -285,7 +389,6 @@ function fmt(n) {
   return "¥" + n.toLocaleString();
 }
 
-// アップロード処理
 async function uploadAll() {
   const btn = document.getElementById("update-btn");
   const msg = document.getElementById("status-msg");
@@ -297,18 +400,9 @@ async function uploadAll() {
     const prodFile = document.getElementById("prod-file").files[0];
     const attFile = document.getElementById("att-file").files[0];
 
-    if (apoFile) {
-      msg.textContent = "① アポリスト処理中...";
-      await uploadApo(apoFile);
-    }
-    if (prodFile) {
-      msg.textContent = "② 生産性レポート処理中...";
-      await uploadProd(prodFile);
-    }
-    if (attFile) {
-      msg.textContent = "③ jinjer処理中...";
-      await uploadAtt(attFile);
-    }
+    if (apoFile) { msg.textContent = "① アポリスト処理中..."; await uploadApo(apoFile); }
+    if (prodFile) { msg.textContent = "② 生産性レポート処理中..."; await uploadProd(prodFile); }
+    if (attFile) { msg.textContent = "③ jinjer処理中..."; await uploadAtt(attFile); }
 
     msg.textContent = "✅ 更新完了";
     await loadData();
@@ -418,7 +512,6 @@ function parseCSV(text) {
   });
 }
 
-// 初期読み込み
 loadData();
 </script>
 </body>
