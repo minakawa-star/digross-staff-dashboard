@@ -12,6 +12,9 @@
   .header-left { display: flex; align-items: center; gap: 16px; }
   .header-title { font-size: 16px; font-weight: 600; color: #1a1a2e; }
   .header-sub { font-size: 13px; color: #888; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .logout-btn { background: transparent; border: 1px solid #e0e0e8; color: #888; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+  .logout-btn:hover { border-color: #aaa; color: #1a1a2e; }
 
   select, input[type="month"] {
     background: #f0f0f5; border: 1px solid #e0e0e8; color: #1a1a2e;
@@ -20,7 +23,6 @@
 
   .container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
 
-  /* KPIカード */
   .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
   .kpi-card { background: #fff; border: 1px solid #e8e8ed; border-radius: 12px; padding: 20px; }
   .kpi-label { font-size: 12px; color: #888; margin-bottom: 8px; }
@@ -30,7 +32,6 @@
   .kpi-yellow { color: #f59e0b; }
   .kpi-red { color: #ef4444; }
 
-  /* 達成率ゲージ */
   .gauge-card { background: #fff; border: 1px solid #e8e8ed; border-radius: 12px; padding: 24px; margin-bottom: 24px; }
   .gauge-title { font-size: 13px; font-weight: 600; color: #555; margin-bottom: 16px; }
   .gauge-wrap { position: relative; height: 12px; background: #f0f0f5; border-radius: 6px; overflow: hidden; margin-bottom: 8px; }
@@ -38,7 +39,6 @@
   .gauge-labels { display: flex; justify-content: space-between; font-size: 11px; color: #aaa; }
   .gauge-milestone { position: absolute; top: 0; height: 100%; width: 2px; background: #fff; opacity: 0.8; }
 
-  /* テーブル */
   .section-card { background: #fff; border: 1px solid #e8e8ed; border-radius: 12px; margin-bottom: 24px; overflow: hidden; }
   .section-header { padding: 16px 20px; border-bottom: 1px solid #f0f0f5; font-size: 13px; font-weight: 600; color: #555; }
   table { width: 100%; border-collapse: collapse; }
@@ -53,7 +53,6 @@
   .badge-under { background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
 
   .loading { text-align: center; padding: 60px; color: #aaa; }
-  .empty { text-align: center; padding: 40px; color: #aaa; font-size: 13px; }
 </style>
 </head>
 <body>
@@ -65,14 +64,16 @@
       <div class="header-sub" id="staff-rank"></div>
     </div>
   </div>
-  <input type="month" id="month-select" value="2026-06">
+  <div class="header-right">
+    <input type="month" id="month-select" value="2026-06">
+    <button class="logout-btn" onclick="logout()">ログアウト</button>
+  </div>
 </div>
 
 <div class="container">
   <div id="loading" class="loading">データを読み込み中...</div>
   <div id="content" style="display:none">
 
-    <!-- KPIカード -->
     <div class="kpi-grid">
       <div class="kpi-card">
         <div class="kpi-label">今月の売上</div>
@@ -91,12 +92,11 @@
       </div>
     </div>
 
-    <!-- 達成率ゲージ -->
     <div class="gauge-card">
       <div class="gauge-title">目標達成状況</div>
       <div class="gauge-wrap">
         <div class="gauge-bar" id="gauge-bar"></div>
-        <div class="gauge-milestone" id="gauge-maintain" style="left:66.7%"></div>
+        <div class="gauge-milestone" id="gauge-maintain"></div>
         <div class="gauge-milestone" id="gauge-achieve" style="left:100%"></div>
       </div>
       <div class="gauge-labels">
@@ -106,24 +106,12 @@
       </div>
     </div>
 
-    <!-- 売上内訳 -->
     <div class="section-card">
       <div class="section-header">売上内訳</div>
       <table>
-        <thead>
-          <tr>
-            <th>項目</th>
-            <th>金額</th>
-          </tr>
-        </thead>
+        <thead><tr><th>項目</th><th>金額</th></tr></thead>
         <tbody id="breakdown-body"></tbody>
       </table>
-    </div>
-
-    <!-- 日次明細 -->
-    <div class="section-card">
-      <div class="section-header">日次明細</div>
-      <div id="daily-content"></div>
     </div>
 
   </div>
@@ -134,12 +122,27 @@ const BASE_URL = "https://digross-server.onrender.com";
 
 fetch(BASE_URL + "/health_staff").catch(() => {});
 
+// 認証ガード
+const token = localStorage.getItem("staff_token");
+const storedStaffId = localStorage.getItem("staff_id");
+const role = localStorage.getItem("staff_role");
+
+if (!token) {
+  window.location.href = "login.html";
+}
+
 function getParams() {
   const p = new URLSearchParams(window.location.search);
-  return { staffId: p.get("id"), month: p.get("month") || "2026-06" };
+  return { staffId: p.get("id"), month: p.get("month") || new Date().toISOString().slice(0, 7) };
 }
 
 const { staffId, month } = getParams();
+
+// 管理者以外は自分のページのみ閲覧可
+if (role !== "admin" && staffId !== storedStaffId) {
+  window.location.href = `staff.html?id=${storedStaffId}&month=${month}`;
+}
+
 document.getElementById("month-select").value = month;
 
 document.getElementById("month-select").addEventListener("change", e => {
@@ -148,9 +151,14 @@ document.getElementById("month-select").addEventListener("change", e => {
   window.location.href = url.toString();
 });
 
+function logout() {
+  localStorage.clear();
+  window.location.href = "login.html";
+}
+
 async function loadData() {
   if (!staffId) {
-    document.getElementById("loading").textContent = "URLにスタッフIDが指定されていません（?id=D0000001）";
+    document.getElementById("loading").textContent = "URLにスタッフIDが指定されていません";
     return;
   }
 
@@ -200,7 +208,6 @@ function renderPage(d) {
     remainEl.textContent = "-";
   }
 
-  // ゲージ
   const maxVal = d.target_achieve > 0 ? d.target_achieve * 1.5 : d.sales * 1.5 || 1;
   const barWidth = Math.min((d.sales / maxVal) * 100, 100);
   const barColor = rate >= 100 ? "#10b981" : rate >= 80 ? "#f59e0b" : "#ef4444";
@@ -216,7 +223,6 @@ function renderPage(d) {
     document.getElementById("gauge-achieve-label").textContent = "達成 " + fmt(d.target_achieve);
   }
 
-  // 売上内訳
   const statusBadge = rate >= 100 ? '<span class="badge-achieve">達成</span>' :
                       rate >= 80 ? '<span class="badge-maintain">維持圏</span>' :
                       '<span class="badge-under">未達</span>';
