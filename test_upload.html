@@ -56,6 +56,7 @@ async function uploadApo() {
     const ws = wb.Sheets[wb.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(ws, { raw: false, dateNF: "yyyy/mm/dd" });
     const rawRecords = rows.map(r => ({
+      appointment_id: String(r["アポイントID"] || "").trim(),
       staff_id: String(r["社員番号"] || "").trim(),
       acquired_date: r["取得日"] ? formatDate(r["取得日"]) : null,
       amount: parseInt(String(r["案件金額"] || "0").replace(/,/g, "")) || 0,
@@ -66,7 +67,7 @@ async function uploadApo() {
 
     const seen = new Set();
     const records = rawRecords.filter(r => {
-      const key = `${r.staff_id}_${r.acquired_date}_${r.amount}_${r.cancel_date}`;
+      const key = r.appointment_id || `${r.staff_id}_${r.acquired_date}_${r.amount}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
