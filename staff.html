@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>実績確認</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f7f7f8; color: #1a1a2e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; }
+
+  .header { background: #fff; border-bottom: 1px solid #e8e8ed; padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .header-title { font-size: 16px; font-weight: 600; color: #1a1a2e; }
+  .header-sub { font-size: 13px; color: #888; }
+
+  select, input[type="month"] {
+    background: #f0f0f5; border: 1px solid #e0e0e8; color: #1a1a2e;
+    padding: 6px 10px; border-radius: 8px; font-size: 13px; cursor: pointer; outline: none;
+  }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+
+  /* KPIカード */
+  .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+  .kpi-card { background: #fff; border: 1px solid #e8e8ed; border-radius: 12px; padding: 20px; }
+  .kpi-label { font-size: 12px; color: #888; margin-bottom: 8px; }
+  .kpi-value { font-size: 26px; font-weight: 700; color: #1a1a2e; font-variant-numeric: tabular-nums; }
+  .kpi-sub { font-size: 12px; color: #aaa; margin-top: 4px; }
+  .kpi-green { color: #10b981; }
+  .kpi-yellow { color: #f59e0b; }
+  .kpi-red { color: #ef4444; }
+
+  /* 達成率ゲージ */
+  .gauge-card { background: #fff; border: 1px solid #e8e8ed; border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+  .gauge-title { font-size: 13px; font-weight: 600; color: #555; margin-bottom: 16px; }
+  .gauge-wrap { position: relative; height: 12px; background: #f0f0f5; border-radius: 6px; overflow: hidden; margin-bottom: 8px; }
+  .gauge-bar { height: 100%; border-radius: 6px; transition: width 0.5s ease; }
+  .gauge-labels { display: flex; justify-content: space-between; font-size: 11px; color: #aaa; }
+  .gauge-milestone { position: absolute; top: 0; height: 100%; width: 2px; background: #fff; opacity: 0.8; }
+
+  /* テーブル */
+  .section-card { background: #fff; border: 1px solid #e8e8ed; border-radius: 12px; margin-bottom: 24px; overflow: hidden; }
+  .section-header { padding: 16px 20px; border-bottom: 1px solid #f0f0f5; font-size: 13px; font-weight: 600; color: #555; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #fafafa; color: #aaa; font-size: 11px; font-weight: 500; text-align: left; padding: 8px 16px; border-bottom: 1px solid #f0f0f5; }
+  td { padding: 10px 16px; border-bottom: 1px solid #f7f7f8; font-size: 13px; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafafa; }
+
+  .num { font-variant-numeric: tabular-nums; }
+  .badge-achieve { background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+  .badge-maintain { background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+  .badge-under { background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+
+  .loading { text-align: center; padding: 60px; color: #aaa; }
+  .empty { text-align: center; padding: 40px; color: #aaa; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div>
+      <div class="header-title" id="staff-name">読み込み中...</div>
+      <div class="header-sub" id="staff-rank"></div>
+    </div>
+  </div>
+  <input type="month" id="month-select" value="2026-06">
+</div>
+
+<div class="container">
+  <div id="loading" class="loading">データを読み込み中...</div>
+  <div id="content" style="display:none">
+
+    <!-- KPIカード -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">今月の売上</div>
+        <div class="kpi-value" id="kpi-sales">-</div>
+        <div class="kpi-sub" id="kpi-sales-sub"></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">達成率</div>
+        <div class="kpi-value" id="kpi-rate">-</div>
+        <div class="kpi-sub" id="kpi-rate-sub"></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">達成まであと</div>
+        <div class="kpi-value" id="kpi-remain">-</div>
+        <div class="kpi-sub" id="kpi-remain-sub"></div>
+      </div>
+    </div>
+
+    <!-- 達成率ゲージ -->
+    <div class="gauge-card">
+      <div class="gauge-title">目標達成状況</div>
+      <div class="gauge-wrap">
+        <div class="gauge-bar" id="gauge-bar"></div>
+        <div class="gauge-milestone" id="gauge-maintain" style="left:66.7%"></div>
+        <div class="gauge-milestone" id="gauge-achieve" style="left:100%"></div>
+      </div>
+      <div class="gauge-labels">
+        <span>¥0</span>
+        <span id="gauge-maintain-label">維持目標</span>
+        <span id="gauge-achieve-label">達成目標</span>
+      </div>
+    </div>
+
+    <!-- 売上内訳 -->
+    <div class="section-card">
+      <div class="section-header">売上内訳</div>
+      <table>
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>金額</th>
+          </tr>
+        </thead>
+        <tbody id="breakdown-body"></tbody>
+      </table>
+    </div>
+
+    <!-- 日次明細 -->
+    <div class="section-card">
+      <div class="section-header">日次明細</div>
+      <div id="daily-content"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const BASE_URL = "https://digross-server.onrender.com";
+
+fetch(BASE_URL + "/health_staff").catch(() => {});
+
+function getParams() {
+  const p = new URLSearchParams(window.location.search);
+  return { staffId: p.get("id"), month: p.get("month") || "2026-06" };
+}
+
+const { staffId, month } = getParams();
+document.getElementById("month-select").value = month;
+
+document.getElementById("month-select").addEventListener("change", e => {
+  const url = new URL(window.location.href);
+  url.searchParams.set("month", e.target.value);
+  window.location.href = url.toString();
+});
+
+async function loadData() {
+  if (!staffId) {
+    document.getElementById("loading").textContent = "URLにスタッフIDが指定されていません（?id=D0000001）";
+    return;
+  }
+
+  try {
+    const res = await fetch(`${BASE_URL}/staff/summary?month=${month}`);
+    const data = await res.json();
+    const staff = (data.data || []).find(d => d.staff_id === staffId);
+
+    if (!staff) {
+      document.getElementById("loading").textContent = "スタッフが見つかりません: " + staffId;
+      return;
+    }
+
+    renderPage(staff);
+  } catch(e) {
+    document.getElementById("loading").textContent = "読み込みエラー: " + e.message;
+  }
+}
+
+function renderPage(d) {
+  document.getElementById("staff-name").textContent = d.name;
+  document.getElementById("staff-rank").textContent = d.rank + " / " + d.site;
+  document.title = d.name + " | 実績確認";
+
+  const
