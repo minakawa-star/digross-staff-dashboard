@@ -1220,7 +1220,7 @@ async function uploadAtt(file) {
     csvText = new TextDecoder("shift-jis").decode(buf);
   }
   const rows = parseCSV(csvText);
-  const records = rows.map(r => {
+  const rawRecords = rows.map(r => {
     const workTime = String(r["実労働時間"] || "00:00").trim();
     let workHours = 0;
     try {
@@ -1232,7 +1232,15 @@ async function uploadAtt(file) {
       work_date: r["*年月日"] ? formatDate(r["*年月日"]) : null,
       work_hours: workHours,
     };
-  }).filter(r => r.staff_id);
+  }).filter(r => r.staff_id && r.work_date);
+
+  // staff_id + work_date が重複する場合は最後の値を優先
+  const dedupMap = new Map();
+  for (const r of rawRecords) {
+    dedupMap.set(`${r.staff_id}_${r.work_date}`, r);
+  }
+  const records = Array.from(dedupMap.values());
+
   const res = await fetch(`${BASE_URL}/staff/upload/attendance_json`, {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ records })
