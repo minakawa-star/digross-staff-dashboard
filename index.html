@@ -3,392 +3,566 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>実績確認</title>
+<title>PT事業部 スタッフ実績管理</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #fdfaf7; color: #2a2622; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; }
 
-  .header { background: #fff; border-bottom: 1px solid #f0e4da; padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-  .header-left { display: flex; align-items: center; gap: 16px; }
-  .header-title { font-size: 16px; font-weight: 700; color: #2a2622; }
-  .header-sub { font-size: 13px; color: #b08968; }
-  .header-right { display: flex; align-items: center; gap: 12px; }
+  .header { background: #fff; border-bottom: 1px solid #f0e4da; padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 24px; position: sticky; top: 0; z-index: 100; }
+  .header-title { font-size: 15px; font-weight: 700; color: #2a2622; white-space: nowrap; }
+  .header-divider { width: 1px; height: 20px; background: #f0e4da; }
+  .header-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex: 1; }
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
   .logout-btn { background: transparent; border: 1px solid #f0e4da; color: #b08968; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
   .logout-btn:hover { border-color: #e8a87c; color: #2a2622; }
 
-  select, input[type="month"] {
+  select, input[type="month"], input[type="text"], input[type="number"], input[type="date"] {
     background: #fff7f1; border: 1px solid #f0e4da; color: #2a2622;
-    padding: 6px 10px; border-radius: 8px; font-size: 13px; cursor: pointer; outline: none;
+    padding: 6px 10px; border-radius: 6px; font-size: 13px; cursor: pointer; outline: none;
   }
+  select:hover, input[type="month"]:hover { border-color: #e8a87c; }
 
-  .container { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+  .upload-section { background: #fff; border-bottom: 1px solid #f0e4da; padding: 12px 24px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .upload-item { display: flex; align-items: center; gap: 8px; }
+  .upload-label { font-size: 12px; color: #c9a07a; white-space: nowrap; }
+  .upload-input { display: none; }
+  .upload-btn { background: #fff7f1; border: 1px solid #f0e4da; color: #2a2622; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; white-space: nowrap; }
+  .upload-btn:hover { border-color: #e8a87c; }
+  .upload-filename { font-size: 12px; color: #d97a3f; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .update-btn { background: #e8a87c; border: none; color: #fff; padding: 6px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 600; white-space: nowrap; margin-left: 8px; }
+  .update-btn:hover { background: #d97a3f; }
+  .update-btn:disabled { background: #f0e4da; color: #c9a07a; cursor: not-allowed; }
+  .status-msg { font-size: 12px; color: #c9a07a; }
 
-  /* メインサマリー */
-  .main-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; margin-bottom: 16px; }
-  @media (max-width: 760px) { .main-grid { grid-template-columns: 1fr; } }
+  .confirm-btn { background: #fff; border: 1px solid #e8a87c; color: #d97a3f; padding: 6px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 600; white-space: nowrap; }
+  .confirm-btn:hover { background: #fdeee3; }
+  .confirm-btn:disabled { background: #f0e4da; color: #c9a07a; border-color: #f0e4da; cursor: not-allowed; }
 
-  .summary-card { background: #fff; border: 1px solid #f5e6d8; border-radius: 14px; padding: 24px; }
-  .summary-title { font-size: 13px; font-weight: 700; color: #2a2622; margin-bottom: 4px; }
-  .summary-sub { font-size: 11px; color: #c9a07a; margin-bottom: 16px; }
+  .summary-bar { background: #fff; padding: 16px 24px; display: flex; gap: 24px; border-bottom: 1px solid #f0e4da; flex-wrap: wrap; }
+  .summary-item { display: flex; flex-direction: column; gap: 2px; }
+  .summary-label { font-size: 11px; color: #c9a07a; }
+  .summary-value { font-size: 18px; font-weight: 800; color: #2a2622; }
 
-  .summary-table { width: 100%; border-collapse: collapse; }
-  .summary-table td { padding: 10px 0; border-bottom: 1px solid #f7eee5; font-size: 13px; }
-  .summary-table tr:last-child td { border-bottom: none; }
-  .summary-table td:first-child { color: #8a7a6d; }
-  .summary-table td:last-child { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .plus { color: #d97a3f; }
-  .minus { color: #d9534f; }
-  .blue { color: #5a9cf8; }
+  /* タブ */
+  .tab-bar { background: #fff; border-bottom: 1px solid #f0e4da; padding: 0 24px; display: flex; gap: 4px; }
+  .tab-btn { background: transparent; border: none; padding: 12px 20px; font-size: 13px; font-weight: 600; color: #c9a07a; cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab-btn.active { color: #d97a3f; border-bottom-color: #e8a87c; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
 
-  /* ドーナツカード */
-  .gauge-card { background: #fff; border: 1px solid #f5e6d8; border-radius: 14px; padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .gauge-card-title { font-size: 13px; font-weight: 700; color: #2a2622; margin-bottom: 16px; align-self: flex-start; }
-  .donut-wrap { position: relative; width: 180px; height: 180px; }
-  .donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
-  .donut-rate { font-size: 28px; font-weight: 800; }
-  .donut-label { font-size: 11px; color: #c9a07a; margin-top: 2px; }
-  .donut-status { margin-top: 16px; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-  .status-achieve { background: #fdeee3; color: #d97a3f; }
-  .status-maintain { background: #fff4e0; color: #cf9a3a; }
-  .status-under { background: #fdecec; color: #d9534f; }
+  .table-wrap { padding: 16px 24px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; }
+  th { background: #fff7f1; color: #c9a07a; font-size: 11px; font-weight: 600; text-align: left; padding: 10px 12px; border-bottom: 1px solid #f0e4da; white-space: nowrap; cursor: pointer; user-select: none; }
+  th:hover { color: #d97a3f; }
+  td { padding: 10px 12px; border-bottom: 1px solid #f7eee5; white-space: nowrap; font-size: 13px; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fffaf5; }
+  .staff-link { color: #d97a3f; text-decoration: none; cursor: pointer; font-weight: 600; }
+  .staff-link:hover { text-decoration: underline; }
 
-  /* KPIグリッド */
-  .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
-  @media (max-width: 760px) { .kpi-grid { grid-template-columns: 1fr; } }
-  .kpi-card { background: #fff; border: 1px solid #f5e6d8; border-radius: 14px; padding: 18px 20px; }
-  .kpi-label { font-size: 12px; color: #c9a07a; margin-bottom: 6px; }
-  .kpi-value { font-size: 22px; font-weight: 800; color: #2a2622; font-variant-numeric: tabular-nums; }
-  .kpi-sub { font-size: 11px; color: #c9a07a; margin-top: 4px; }
-  .kpi-green { color: #d97a3f; }
-  .kpi-yellow { color: #cf9a3a; }
-  .kpi-red { color: #d9534f; }
+  .rate-cell { display: flex; align-items: center; gap: 8px; }
+  .rate-bar-bg { width: 80px; height: 5px; background: #f7eee5; border-radius: 3px; overflow: hidden; }
+  .rate-bar { height: 100%; border-radius: 3px; transition: width 0.3s; }
+  .rate-text { font-size: 13px; font-weight: 700; min-width: 45px; }
 
-  /* バー */
-  .bar-card { background: #fff; border: 1px solid #f5e6d8; border-radius: 14px; padding: 24px; margin-bottom: 16px; }
-  .bar-title { font-size: 13px; font-weight: 700; color: #2a2622; margin-bottom: 16px; }
-  .bar-wrap { position: relative; height: 10px; background: #f7eee5; border-radius: 5px; overflow: hidden; margin-bottom: 8px; }
-  .bar-fill { height: 100%; border-radius: 5px; background: linear-gradient(90deg,#f3c19c,#e8a87c); transition: width 0.6s ease; }
-  .bar-milestone { position: absolute; top: -3px; height: 16px; width: 2px; background: #fff; }
-  .bar-labels { display: flex; justify-content: space-between; font-size: 11px; color: #c9a07a; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .badge-top { background: #fdeee3; color: #d97a3f; }
+  .badge-middle { background: #eaf2fd; color: #5a9cf8; }
+  .badge-rookie-plus { background: #eafaf0; color: #2eb872; }
+  .badge-rookie { background: #f0faf4; color: #5fc98a; }
+  .badge-manager { background: #fff4e0; color: #cf9a3a; }
+  .badge-staff { background: #f3f0ec; color: #a89884; }
+  .monthly-tag { font-size: 10px; color: #b08968; background: #fff4e8; padding: 1px 5px; border-radius: 3px; margin-left: 4px; }
+  .confirmed-tag { font-size: 10px; color: #2eb872; background: #eafaf0; padding: 1px 5px; border-radius: 3px; }
 
-  /* 出勤予定数入力 */
-  .planned-input { width: 70px; padding: 8px; border: 1px solid #f5e6d8; border-radius: 8px; font-size: 18px; font-weight: 700; text-align: center; color: #2a2622; background: #fff7f1; }
-  .planned-save-btn { background: #e8a87c; border: none; color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
-  .planned-save-btn:hover { background: #d97a3f; }
-  .planned-save-btn:disabled { background: #f0e4da; color: #c9a07a; cursor: not-allowed; }
+  .planned-cell { display: flex; align-items: center; gap: 4px; }
+  .planned-input-cell { width: 50px; padding: 4px 6px; border: 1px solid #f0e4da; border-radius: 4px; font-size: 12px; text-align: center; background: #fff7f1; color: #2a2622; }
+  .planned-input-cell:disabled { background: #f7eee5; color: #c9a07a; }
+  .planned-save-cell { background: #e8a87c; border: none; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+  .planned-save-cell:hover { background: #d97a3f; }
+  .planned-save-cell:disabled { background: #f0e4da; color: #c9a07a; cursor: not-allowed; }
 
-  /* FB内訳カード */
-  .fb-card { background: #fff; border: 1px solid #f5e6d8; border-radius: 14px; margin-bottom: 16px; overflow: hidden; }
-  .fb-header { padding: 16px 24px; border-bottom: 1px solid #f7eee5; font-size: 13px; font-weight: 700; color: #2a2622; display: flex; justify-content: space-between; align-items: center; }
-  .fb-total { font-size: 16px; font-weight: 800; color: #5a9cf8; }
-  .fb-table { width: 100%; border-collapse: collapse; }
-  .fb-table td { padding: 10px 24px; border-bottom: 1px solid #f7eee5; font-size: 13px; }
-  .fb-table tr:last-child td { border-bottom: none; }
-  .fb-table td:last-child { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .fb-cat-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-right: 8px; }
-  .fb-cat-default { background: #eaf2fd; color: #5a9cf8; }
-  .fb-cat-bonus { background: #eafaf0; color: #2eb872; }
-  .fb-cat-penalty { background: #fdecec; color: #d9534f; }
-  .fb-empty { padding: 24px; text-align: center; color: #c9a07a; font-size: 13px; }
-  .fb-count { font-size: 11px; color: #c9a07a; margin-left: 6px; }
+  /* FBキャンペーン */
+  .fb-toolbar { padding: 16px 24px 0; display: flex; justify-content: flex-end; }
+  .add-campaign-btn { background: #e8a87c; border: none; color: #fff; padding: 8px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .add-campaign-btn:hover { background: #d97a3f; }
+  .cat-pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .cat-bonus { background: #eafaf0; color: #2eb872; }
+  .cat-penalty { background: #fdecec; color: #d9534f; }
+  .cat-default { background: #eaf2fd; color: #5a9cf8; }
+  .calc-pill { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; background: #f3f0ec; color: #8a7a6d; }
+  .action-btn { background: transparent; border: 1px solid #f0e4da; color: #8a7a6d; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; margin-right: 4px; }
+  .action-btn:hover { border-color: #e8a87c; color: #d97a3f; }
+  .action-btn.delete:hover { border-color: #d9534f; color: #d9534f; }
+
+  /* モーダル */
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(42,38,34,0.4); z-index: 200; align-items: center; justify-content: center; }
+  .modal-overlay.active { display: flex; }
+  .modal { background: #fff; border: 1px solid #f0e4da; border-radius: 14px; padding: 32px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
+  .modal-large { max-width: 600px; }
+  .modal-title { font-size: 16px; font-weight: 700; color: #2a2622; margin-bottom: 24px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 12px; color: #c9a07a; margin-bottom: 6px; display: block; }
+  .form-input { width: 100%; background: #fff7f1; border: 1px solid #f0e4da; color: #2a2622; padding: 8px 12px; border-radius: 6px; font-size: 13px; outline: none; }
+  .form-input:focus { border-color: #e8a87c; }
+  .form-row { display: flex; gap: 12px; }
+  .form-row .form-group { flex: 1; }
+  .modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 24px; }
+  .btn-cancel { background: transparent; border: 1px solid #f0e4da; color: #c9a07a; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .btn-submit { background: #e8a87c; border: none; color: #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+  .btn-submit:disabled { background: #f0e4da; color: #c9a07a; cursor: not-allowed; }
+  .modal-msg { font-size: 12px; margin-top: 8px; text-align: center; }
+  .register-btn { background: #fff7f1; border: 1px solid #f0e4da; color: #2a2622; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+  .register-btn:hover { border-color: #e8a87c; color: #d97a3f; }
+
+  .checkbox-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 13px; }
+  .checkbox-row input { cursor: pointer; }
+  .checkbox-row label { cursor: pointer; }
+
+  .staff-select-box { border: 1px solid #f0e4da; border-radius: 6px; max-height: 180px; overflow-y: auto; padding: 8px; background: #fff7f1; margin-top: 6px; }
+  .staff-select-search { margin-bottom: 8px; width: 100%; }
+  .staff-checkbox-row { display: flex; align-items: center; gap: 6px; padding: 3px 0; font-size: 12px; }
+  .target-all-note { font-size: 11px; color: #c9a07a; margin-top: 4px; }
 
   .loading { text-align: center; padding: 60px; color: #c9a07a; }
+  .num { font-variant-numeric: tabular-nums; }
+  .num-green { color: #d97a3f; }
+  .num-yellow { color: #cf9a3a; }
+  .num-red { color: #d9534f; }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="header-left">
-    <div>
-      <div class="header-title" id="staff-name">読み込み中...</div>
-      <div class="header-sub" id="staff-rank"></div>
-    </div>
+  <div class="header-title">PT事業部 実績管理</div>
+  <div class="header-divider"></div>
+  <div class="header-controls">
+    <input type="month" id="month-select" value="2026-06">
+    <select id="site-filter">
+      <option value="">全サイト</option>
+      <option value="新宿SC">新宿SC</option>
+      <option value="六本木SC">六本木SC</option>
+      <option value="リモートSC">リモートSC</option>
+      <option value="在宅G">在宅G</option>
+      <option value="AI">AI</option>
+    </select>
+    <select id="rank-filter">
+      <option value="">全ランク</option>
+      <option value="トップ">トップ</option>
+      <option value="ミドル">ミドル</option>
+      <option value="ルーキープラス">ルーキープラス</option>
+      <option value="ルーキー">ルーキー</option>
+      <option value="管理者">管理者</option>
+      <option value="社員">社員</option>
+    </select>
+    <button class="confirm-btn" id="confirm-btn" onclick="confirmMonth()">この月を確定する</button>
   </div>
   <div class="header-right">
-    <input type="month" id="month-select" value="2026-06">
+    <button class="register-btn" onclick="openRegisterModal()">＋ スタッフ登録</button>
     <button class="logout-btn" onclick="logout()">ログアウト</button>
   </div>
 </div>
 
-<div class="container">
-  <div id="loading" class="loading">データを読み込み中...</div>
-  <div id="content" style="display:none">
+<div class="upload-section">
+  <div class="upload-item">
+    <span class="upload-label">① アポリスト</span>
+    <label class="upload-btn">ファイル選択<input class="upload-input" type="file" id="apo-file" accept=".xlsx"></label>
+    <span class="upload-filename" id="apo-name">未選択</span>
+  </div>
+  <div class="upload-item">
+    <span class="upload-label">② 生産性</span>
+    <label class="upload-btn">ファイル選択<input class="upload-input" type="file" id="prod-file" accept=".csv"></label>
+    <span class="upload-filename" id="prod-name">未選択</span>
+  </div>
+  <div class="upload-item">
+    <span class="upload-label">③ jinjer</span>
+    <label class="upload-btn">ファイル選択<input class="upload-input" type="file" id="att-file" accept=".csv,.zip"></label>
+    <span class="upload-filename" id="att-name">未選択</span>
+  </div>
+  <button class="update-btn" id="update-btn" onclick="uploadAll()">データ更新</button>
+  <span class="status-msg" id="status-msg"></span>
+</div>
 
-    <!-- メイン：内訳 + ドーナツ -->
-    <div class="main-grid">
-      <div class="summary-card">
-        <div class="summary-title" id="summary-title">今月の実績</div>
-        <div class="summary-sub" id="summary-sub"></div>
-        <table class="summary-table" id="breakdown-body"></table>
-      </div>
+<div class="summary-bar" id="summary-bar"></div>
 
-      <div class="gauge-card">
-        <div class="gauge-card-title">達成率</div>
-        <div class="donut-wrap">
-          <svg width="180" height="180" viewBox="0 0 180 180">
-            <circle cx="90" cy="90" r="78" fill="none" stroke="#f7eee5" stroke-width="16"/>
-            <circle id="donut-circle" cx="90" cy="90" r="78" fill="none" stroke="#e8a87c" stroke-width="16"
-                    stroke-linecap="round" stroke-dasharray="490" stroke-dashoffset="490"
-                    transform="rotate(-90 90 90)" style="transition: stroke-dashoffset 0.8s ease;"/>
-          </svg>
-          <div class="donut-center">
-            <div class="donut-rate" id="donut-rate">-</div>
-            <div class="donut-label" id="donut-sub">出勤 -日</div>
-          </div>
-        </div>
-        <div class="donut-status" id="donut-status">-</div>
-      </div>
-    </div>
+<!-- タブ -->
+<div class="tab-bar">
+  <button class="tab-btn active" id="tab-summary-btn" onclick="switchTab('summary')">実績一覧</button>
+  <button class="tab-btn" id="tab-fb-btn" onclick="switchTab('fb')">FBキャンペーン管理</button>
+</div>
 
-    <!-- FB内訳 -->
-    <div class="fb-card">
-      <div class="fb-header">
-        <span>FB内訳</span>
-        <span class="fb-total" id="fb-total">¥0</span>
-      </div>
-      <table class="fb-table" id="fb-breakdown-body"></table>
-    </div>
-
-    <!-- KPI：達成まであと・時給 -->
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-label">達成まであと</div>
-        <div class="kpi-value" id="kpi-remain">-</div>
-        <div class="kpi-sub" id="kpi-remain-sub"></div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">時給</div>
-        <div class="kpi-value" id="info-wage">-</div>
-        <div class="kpi-sub">本人ステータス基準</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label" id="work-days-label">出勤日数</div>
-        <div class="kpi-value" id="info-days">-</div>
-        <div class="kpi-sub" id="work-days-sub">当月実績</div>
-      </div>
-    </div>
-
-    <!-- 出勤予定数入力 -->
-    <div class="kpi-grid" id="planned-grid" style="grid-template-columns: 1fr;">
-      <div class="kpi-card" id="planned-card">
-        <div class="kpi-label">今月の出勤予定数</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
-          <input type="number" class="planned-input" id="planned-input" min="0" max="31">
-          <span style="font-size:14px;color:#8a7a6d">日</span>
-          <button class="planned-save-btn" id="planned-save-btn" onclick="savePlannedDays()">保存</button>
-        </div>
-        <div class="kpi-sub" id="planned-msg">この月の目標値は、ここで設定した出勤予定数を基準に計算されます</div>
-      </div>
-    </div>
-
-    <!-- 目標バー -->
-    <div class="bar-card">
-      <div class="bar-title">目標達成状況</div>
-      <div class="bar-wrap">
-        <div class="bar-fill" id="bar-fill"></div>
-        <div class="bar-milestone" id="bar-maintain"></div>
-        <div class="bar-milestone" id="bar-achieve" style="left:100%"></div>
-      </div>
-      <div class="bar-labels">
-        <span>¥0</span>
-        <span id="bar-maintain-label">維持目標</span>
-        <span id="bar-achieve-label">達成目標</span>
-      </div>
-    </div>
-
+<!-- 実績一覧タブ -->
+<div class="tab-content active" id="tab-summary">
+  <div class="table-wrap">
+    <div class="loading" id="loading">データを読み込み中...</div>
+    <table id="main-table" style="display:none">
+      <thead>
+        <tr>
+          <th onclick="sortTable('name')">スタッフ名</th>
+          <th onclick="sortTable('rank')">ランク</th>
+          <th onclick="sortTable('site')">サイト</th>
+          <th onclick="sortTable('sales')">売上</th>
+          <th onclick="sortTable('apo_amount')">アポ取得</th>
+          <th onclick="sortTable('cxl_amount')">CXL</th>
+          <th onclick="sortTable('fb_amount')">FB</th>
+          <th onclick="sortTable('target_achieve')">達成目標</th>
+          <th onclick="sortTable('target_maintain')">維持目標</th>
+          <th onclick="sortTable('achieve_rate')">達成率</th>
+          <th onclick="sortTable('work_days')">出勤日数</th>
+          <th onclick="sortTable('hourly_wage')">時給</th>
+          <th>出勤予定数</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
   </div>
 </div>
 
+<!-- FBキャンペーン管理タブ -->
+<div class="tab-content" id="tab-fb">
+  <div class="fb-toolbar">
+    <button class="add-campaign-btn" onclick="openCampaignModal()">＋ 新規キャンペーン作成</button>
+  </div>
+  <div class="table-wrap">
+    <div class="loading" id="fb-loading">読み込み中...</div>
+    <table id="fb-table" style="display:none">
+      <thead>
+        <tr>
+          <th>キャンペーン名</th>
+          <th>カテゴリ</th>
+          <th>方式</th>
+          <th>期間</th>
+          <th>金額</th>
+          <th>対象種別</th>
+          <th>再送除外</th>
+          <th>対象スタッフ</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="fb-table-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- スタッフ登録モーダル -->
+<div class="modal-overlay" id="register-modal">
+  <div class="modal">
+    <div class="modal-title">スタッフ登録</div>
+    <div class="form-group">
+      <label class="form-label">社員番号</label>
+      <input class="form-input" id="reg-staff-id" placeholder="例：D0000001">
+    </div>
+    <div class="form-group">
+      <label class="form-label">スタッフ名</label>
+      <input class="form-input" id="reg-staff-name" placeholder="例：山田太郎0101">
+    </div>
+    <div class="form-group">
+      <label class="form-label">ログインID</label>
+      <input class="form-input" id="reg-login-id" placeholder="例：yamada">
+    </div>
+    <div class="form-group">
+      <label class="form-label">パスワード</label>
+      <input class="form-input" type="password" id="reg-password" placeholder="8文字以上">
+    </div>
+    <div class="form-group">
+      <label class="form-label">ロール</label>
+      <select class="form-input" id="reg-role">
+        <option value="staff">スタッフ</option>
+        <option value="admin">管理者</option>
+      </select>
+    </div>
+    <div class="modal-msg" id="reg-msg"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeRegisterModal()">キャンセル</button>
+      <button class="btn-submit" id="reg-submit" onclick="registerStaff()">登録</button>
+    </div>
+  </div>
+</div>
+
+<!-- FBキャンペーン作成・編集モーダル -->
+<div class="modal-overlay" id="campaign-modal">
+  <div class="modal modal-large">
+    <div class="modal-title" id="campaign-modal-title">新規FBキャンペーン作成</div>
+    <input type="hidden" id="campaign-id">
+
+    <div class="form-group">
+      <label class="form-label">キャンペーン名</label>
+      <input class="form-input" id="campaign-name" placeholder="例：6月行動量ボーナス">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">カテゴリ</label>
+        <select class="form-input" id="campaign-category-select" onchange="onCategoryChange()">
+          <option value="勤怠ボーナス">勤怠ボーナス</option>
+          <option value="勤怠ペナルティ">勤怠ペナルティ</option>
+          <option value="行動量ボーナス">行動量ボーナス</option>
+          <option value="イベントボーナス">イベントボーナス</option>
+          <option value="トッププレイヤーボーナス">トッププレイヤーボーナス</option>
+          <option value="__other__">その他（自由入力）</option>
+        </select>
+        <input class="form-input" id="campaign-category-other" placeholder="カテゴリ名を入力" style="display:none;margin-top:6px">
+      </div>
+      <div class="form-group">
+        <label class="form-label">計算方式</label>
+        <select class="form-input" id="campaign-calc-type" onchange="onCalcTypeChange()">
+          <option value="per_unit">件数×単価</option>
+          <option value="fixed">固定額</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">開始日</label>
+        <input class="form-input" type="date" id="campaign-start">
+      </div>
+      <div class="form-group">
+        <label class="form-label">終了日</label>
+        <input class="form-input" type="date" id="campaign-end">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" id="campaign-amount-label">付与金額（1件あたり）</label>
+      <input class="form-input" type="number" id="campaign-amount" placeholder="例：1000">
+    </div>
+
+    <div class="form-group" id="campaign-type-group">
+      <label class="form-label">対象種別（未選択＝全種別が対象）</label>
+      <div class="checkbox-row">
+        <input type="checkbox" id="type-new" value="新規">
+        <label for="type-new">新規</label>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="type-new-next" value="新規【翌営業日】">
+        <label for="type-new-next">新規【翌営業日】</label>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="type-cancel-readjust" value="キャンセルの再調整">
+        <label for="type-cancel-readjust">キャンセルの再調整</label>
+      </div>
+    </div>
+
+    <div class="form-group" id="campaign-resend-group">
+      <div class="checkbox-row">
+        <input type="checkbox" id="campaign-exclude-resend" checked>
+        <label for="campaign-exclude-resend">再送のアポは対象から除外する</label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" id="campaign-staff-label">対象スタッフ（未選択＝全員対象）</label>
+      <input class="form-input staff-select-search" type="text" id="staff-search" placeholder="名前で検索..." oninput="filterStaffCheckboxes()">
+      <div class="staff-select-box" id="staff-checkbox-box"></div>
+      <div class="target-all-note" id="campaign-staff-note">未選択の場合、全スタッフが対象になります</div>
+    </div>
+
+    <div class="modal-msg" id="campaign-msg"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeCampaignModal()">キャンセル</button>
+      <button class="btn-submit" id="campaign-submit" onclick="saveCampaign()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 <script>
 const BASE_URL = "https://digross-server.onrender.com";
-
-fetch(BASE_URL + "/health_staff").catch(() => {});
+let allData = [];
+let sortKey = "achieve_rate";
+let sortDir = -1;
+let allCampaigns = [];
 
 const token = localStorage.getItem("staff_token");
-const storedStaffId = localStorage.getItem("staff_id");
 const role = localStorage.getItem("staff_role");
-
-if (!token) {
+if (!token || role !== "admin") {
   window.location.href = "login.html";
 }
 
-function getParams() {
-  const p = new URLSearchParams(window.location.search);
-  return { staffId: p.get("id"), month: p.get("month") || new Date().toISOString().slice(0, 7) };
-}
+fetch(BASE_URL + "/health_staff").catch(() => {});
 
-const { staffId, month } = getParams();
-
-if (role !== "admin" && staffId !== storedStaffId) {
-  window.location.href = `staff.html?id=${storedStaffId}&month=${month}`;
-}
-
-document.getElementById("month-select").value = month;
-
-document.getElementById("month-select").addEventListener("change", e => {
-  const url = new URL(window.location.href);
-  url.searchParams.set("month", e.target.value);
-  window.location.href = url.toString();
+document.getElementById("apo-file").addEventListener("change", e => {
+  document.getElementById("apo-name").textContent = e.target.files[0]?.name || "未選択";
 });
+document.getElementById("prod-file").addEventListener("change", e => {
+  document.getElementById("prod-name").textContent = e.target.files[0]?.name || "未選択";
+});
+document.getElementById("att-file").addEventListener("change", e => {
+  document.getElementById("att-name").textContent = e.target.files[0]?.name || "未選択";
+});
+
+document.getElementById("month-select").addEventListener("change", loadData);
+document.getElementById("site-filter").addEventListener("change", renderTable);
+document.getElementById("rank-filter").addEventListener("change", renderTable);
 
 function logout() {
   localStorage.clear();
   window.location.href = "login.html";
 }
 
-async function loadData() {
-  if (!staffId) {
-    document.getElementById("loading").textContent = "URLにスタッフIDが指定されていません";
-    return;
+// ============================================================
+// タブ切り替え
+// ============================================================
+function switchTab(tab) {
+  document.getElementById("tab-summary").classList.toggle("active", tab === "summary");
+  document.getElementById("tab-fb").classList.toggle("active", tab === "fb");
+  document.getElementById("tab-summary-btn").classList.toggle("active", tab === "summary");
+  document.getElementById("tab-fb-btn").classList.toggle("active", tab === "fb");
+  if (tab === "fb" && allCampaigns.length === 0) {
+    loadCampaigns();
   }
+}
+
+// ============================================================
+// スタッフ登録モーダル
+// ============================================================
+function openRegisterModal() {
+  document.getElementById("register-modal").classList.add("active");
+}
+
+function closeRegisterModal() {
+  document.getElementById("register-modal").classList.remove("active");
+  document.getElementById("reg-msg").textContent = "";
+}
+
+async function registerStaff() {
+  const btn = document.getElementById("reg-submit");
+  const msg = document.getElementById("reg-msg");
+  btn.disabled = true;
+  try {
+    const res = await fetch(`${BASE_URL}/staff/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        staff_id: document.getElementById("reg-staff-id").value.trim(),
+        staff_name: document.getElementById("reg-staff-name").value.trim(),
+        login_id: document.getElementById("reg-login-id").value.trim(),
+        password: document.getElementById("reg-password").value.trim(),
+        role: document.getElementById("reg-role").value
+      })
+    });
+    const data = await res.json();
+    if (data.error) {
+      msg.style.color = "#d9534f";
+      msg.textContent = data.error;
+    } else {
+      msg.style.color = "#2eb872";
+      msg.textContent = "登録完了しました";
+      setTimeout(closeRegisterModal, 1500);
+    }
+  } catch(e) {
+    msg.style.color = "#d9534f";
+    msg.textContent = "通信エラー";
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ============================================================
+// 実績一覧
+// ============================================================
+async function loadData() {
+  const month = document.getElementById("month-select").value;
+  document.getElementById("loading").style.display = "block";
+  document.getElementById("main-table").style.display = "none";
   try {
     const res = await fetch(`${BASE_URL}/staff/summary?month=${month}`);
     const data = await res.json();
-    const staff = (data.data || []).find(d => d.staff_id === staffId);
-    if (!staff) {
-      document.getElementById("loading").textContent = "スタッフが見つかりません: " + staffId;
-      return;
-    }
-    renderPage(staff);
+    allData = data.data || [];
+    renderTable();
+    buildStaffCheckboxes();
   } catch(e) {
     document.getElementById("loading").textContent = "読み込みエラー: " + e.message;
   }
 }
 
-function fbCatClass(category) {
-  if (!category) return "fb-cat-default";
-  if (category.includes("ペナルティ")) return "fb-cat-penalty";
-  if (category.includes("ボーナス") || category.includes("達成評価")) return "fb-cat-bonus";
-  return "fb-cat-default";
+function getFilteredData() {
+  const site = document.getElementById("site-filter").value;
+  const rank = document.getElementById("rank-filter").value;
+  return allData.filter(d => {
+    if (site && d.site !== site) return false;
+    if (rank && d.rank !== rank) return false;
+    return true;
+  });
 }
 
-function renderFbBreakdown(d) {
-  const breakdown = d.fb_breakdown || [];
-  const tbody = document.getElementById("fb-breakdown-body");
+function renderTable() {
+  const data = getFilteredData();
+  data.sort((a, b) => {
+    const av = a[sortKey] ?? -1;
+    const bv = b[sortKey] ?? -1;
+    if (typeof av === "string") return sortDir * av.localeCompare(bv);
+    return sortDir * (av - bv);
+  });
 
-  if (breakdown.length === 0) {
-    tbody.innerHTML = `<tr><td class="fb-empty" colspan="2">対象のFBはありません</td></tr>`;
-  } else {
-    tbody.innerHTML = breakdown.map(item => {
-      const cls = fbCatClass(item.category);
-      const countLabel = item.count != null ? `<span class="fb-count">（${item.count}件）</span>` : "";
-      const amountColor = item.amount < 0 ? "minus" : "";
-      return `<tr>
-        <td><span class="fb-cat-badge ${cls}">${item.category || "その他"}</span>${item.name || ""}${countLabel}</td>
-        <td class="${amountColor}">${fmt(item.amount)}</td>
-      </tr>`;
-    }).join("");
-  }
+  renderSummary(data);
 
-  document.getElementById("fb-total").textContent = fmt(d.fb_amount);
-}
+  const month = document.getElementById("month-select").value;
+  const tbody = document.getElementById("table-body");
+  tbody.innerHTML = data.map(d => {
+    const rate = d.achieve_rate ?? 0;
+    const rateColor = rate >= 100 ? "num-green" : rate >= 80 ? "num-yellow" : "num-red";
+    const barColor = rate >= 100 ? "#e8a87c" : rate >= 80 ? "#f0c987" : "#e89a9a";
+    const barWidth = Math.min(rate, 150);
+    const rankBadge = getRankBadge(d.rank);
+    const monthlyTag = d.is_monthly ? '<span class="monthly-tag">月給</span>' : "";
+    const wageDisplay = d.is_monthly ? '<span style="color:#cf9a3a">月給制</span>' : d.hourly_wage > 0 ? '¥' + d.hourly_wage.toLocaleString() : '-';
 
-function renderPage(d) {
-  document.getElementById("staff-name").textContent = d.name;
-  document.getElementById("staff-rank").textContent = d.rank + " / " + d.site;
-  document.title = d.name + " | 実績確認";
+    let plannedCell;
+    if (d.is_confirmed) {
+      plannedCell = `
+        <div class="planned-cell">
+          <input type="number" class="planned-input-cell" id="planned-${d.staff_id}" value="${d.planned_work_days || 0}" min="0" max="31">
+          <button class="planned-save-cell" onclick="savePlanned('${d.staff_id}')">更新</button>
+          <span class="confirmed-tag">確定済</span>
+        </div>`;
+    } else {
+      plannedCell = `
+        <div class="planned-cell">
+          <input type="number" class="planned-input-cell" id="planned-${d.staff_id}" value="${d.planned_work_days || ''}" min="0" max="31" placeholder="-">
+          <button class="planned-save-cell" onclick="savePlanned('${d.staff_id}')">保存</button>
+        </div>`;
+    }
 
-  const rate = d.achieve_rate ?? 0;
-  const remain = d.target_achieve > 0 ? d.target_achieve - d.sales : null;
-
-  // サマリーテーブル
-  document.getElementById("summary-sub").textContent = `${month} 月の売上実績`;
-  document.getElementById("breakdown-body").innerHTML = `
-    <tr><td>売上合計</td><td>${fmt(d.sales)}</td></tr>
-    <tr><td>アポ取得金額</td><td class="plus">${fmt(d.apo_amount)}</td></tr>
-    <tr><td>キャンセル金額</td><td class="minus">${d.cxl_amount > 0 ? '▲' + fmt(d.cxl_amount) : '-'}</td></tr>
-    <tr><td>FB金額</td><td class="blue">${d.fb_amount > 0 ? fmt(d.fb_amount) : (d.fb_amount < 0 ? fmt(d.fb_amount) : '-')}</td></tr>
-    <tr><td>達成目標</td><td>${d.target_achieve > 0 ? fmt(d.target_achieve) : '-'}</td></tr>
-    <tr><td>維持目標</td><td>${d.target_maintain > 0 ? fmt(d.target_maintain) : '-'}</td></tr>
-  `;
-
-  // FB内訳
-  renderFbBreakdown(d);
-
-  // ドーナツ
-  const circumference = 490;
-  const pct = Math.min(rate, 150) / 150; // 150%でフル
-  const offset = circumference * (1 - pct);
-  const circle = document.getElementById("donut-circle");
-  circle.style.strokeDashoffset = offset;
-  circle.style.stroke = rate >= 100 ? "#e8a87c" : rate >= 80 ? "#f0c987" : "#e89a9a";
-
-  document.getElementById("donut-rate").textContent = d.achieve_rate != null ? d.achieve_rate + "%" : "-";
-  document.getElementById("donut-rate").style.color = rate >= 100 ? "#d97a3f" : rate >= 80 ? "#cf9a3a" : "#d9534f";
-  document.getElementById("donut-sub").textContent = `出勤 ${d.work_days}日`;
-
-  const statusEl = document.getElementById("donut-status");
-  if (rate >= 100) { statusEl.textContent = "達成"; statusEl.className = "donut-status status-achieve"; }
-  else if (rate >= 80) { statusEl.textContent = "維持圏"; statusEl.className = "donut-status status-maintain"; }
-  else { statusEl.textContent = "未達"; statusEl.className = "donut-status status-under"; }
-
-  // KPI
-  const remainEl = document.getElementById("kpi-remain");
-  if (remain != null && remain > 0) {
-    remainEl.textContent = fmt(remain);
-    remainEl.className = "kpi-value kpi-red";
-    document.getElementById("kpi-remain-sub").textContent = "達成目標まで";
-  } else if (remain != null && remain <= 0) {
-    remainEl.textContent = "達成！";
-    remainEl.className = "kpi-value kpi-green";
-    document.getElementById("kpi-remain-sub").textContent = fmt(Math.abs(remain)) + " 超過";
-  } else {
-    remainEl.textContent = "-";
-    document.getElementById("kpi-remain-sub").textContent = "";
-  }
-
-  const wageEl = document.getElementById("info-wage");
-  if (d.is_monthly) {
-    wageEl.textContent = "月給制";
-    wageEl.style.color = "#cf9a3a";
-  } else {
-    wageEl.textContent = d.hourly_wage > 0 ? "¥" + d.hourly_wage.toLocaleString() : "-";
-  }
-
-  // 出勤日数（実績）
-  document.getElementById("info-days").textContent = d.work_days + "日";
-  document.getElementById("work-days-sub").textContent = d.is_confirmed ? "確定済み（実績）" : "現時点の実績";
-
-  // 出勤予定数入力欄
-  const plannedCard = document.getElementById("planned-card");
-  if (d.is_confirmed) {
-    plannedCard.innerHTML = `
-      <div class="kpi-label">出勤予定数（確定済）</div>
-      <div class="kpi-value" style="color:#c9a07a">${d.planned_work_days}日</div>
-      <div class="kpi-sub">この月は確定済みのため編集できません。目標値は実績出勤日数で計算されています。</div>
-    `;
-  } else {
-    document.getElementById("planned-input").value = d.planned_work_days || "";
-  }
-
-  // 目標バー
-  const maxVal = d.target_achieve > 0 ? d.target_achieve * 1.5 : d.sales * 1.5 || 1;
-  const barWidth = Math.min((d.sales / maxVal) * 100, 100);
-  document.getElementById("bar-fill").style.width = barWidth + "%";
-
-  if (d.target_achieve > 0) {
-    const maintainPos = Math.min((d.target_maintain / maxVal) * 100, 100);
-    const achievePos = Math.min((d.target_achieve / maxVal) * 100, 100);
-    document.getElementById("bar-maintain").style.left = maintainPos + "%";
-    document.getElementById("bar-achieve").style.left = achievePos + "%";
-    document.getElementById("bar-maintain-label").textContent = "維持 " + fmt(d.target_maintain);
-    document.getElementById("bar-achieve-label").textContent = "達成 " + fmt(d.target_achieve);
-  }
+    return `<tr>
+      <td><a class="staff-link" href="staff.html?id=${d.staff_id}&month=${month}">${d.name}</a>${monthlyTag}</td>
+      <td><span class="badge ${rankBadge.cls}">${rankBadge.label}</span></td>
+      <td>${d.site}</td>
+      <td class="num">${fmt(d.sales)}</td>
+      <td class="num" style="color:#2eb872">${fmt(d.apo_amount)}</td>
+      <td class="num">${d.cxl_amount > 0 ? '<span style="color:#d9534f">▲' + fmt(d.cxl_amount) + '</span>' : '-'}</td>
+      <td class="num" style="color:#5a9cf8">${d.fb_amount != 0 ? fmt(d.fb_amount) : '-'}</td>
+      <td class="num">${d.target_achieve > 0 ? fmt(d.target_achieve) : '-'}</td>
+      <td class="num">${d.target_maintain > 0 ? fmt(d.target_maintain) : '-'}</td>
+      <td>
+        <div class="rate-cell">
+          <div class="rate-bar-bg"><div class="rate-bar" style="width:${barWidth}%;background:${barColor}"></div></div>
+          <span class="rate-text ${rateColor}">${d.achieve_rate != null ? d.achieve_rate + '%' : '-'}</span>
+        </div>
+      </td>
+      <td class="num">${d.work_days}日</td>
+      <td class="num">${wageDisplay}</td>
+      <td>${plannedCell}</td>
+    </tr>`;
+  }).join("");
 
   document.getElementById("loading").style.display = "none";
-  document.getElementById("content").style.display = "block";
+  document.getElementById("main-table").style.display = "table";
 }
 
-async function savePlannedDays() {
-  const val = document.getElementById("planned-input").value;
-  const msg = document.getElementById("planned-msg");
-  const btn = document.getElementById("planned-save-btn");
+async function savePlanned(staffId) {
+  const input = document.getElementById(`planned-${staffId}`);
+  const val = input.value;
+  const month = document.getElementById("month-select").value;
   if (val === "" || isNaN(val)) {
-    msg.textContent = "数値を入力してください";
-    msg.style.color = "#d9534f";
+    alert("数値を入力してください");
     return;
   }
-  btn.disabled = true;
   try {
     const res = await fetch(`${BASE_URL}/staff/target`, {
       method: "POST",
@@ -400,23 +574,486 @@ async function savePlannedDays() {
     });
     const data = await res.json();
     if (data.error) {
-      msg.textContent = data.error;
-      msg.style.color = "#d9534f";
+      alert("エラー: " + data.error);
     } else {
-      msg.textContent = "保存しました（再読み込みで目標値が更新されます）";
-      msg.style.color = "#2eb872";
+      await loadData();
     }
   } catch(e) {
-    msg.textContent = "通信エラー";
+    alert("通信エラー: " + e.message);
+  }
+}
+
+async function confirmMonth() {
+  const month = document.getElementById("month-select").value;
+  if (!confirm(`${month} を確定します。\n以降、出勤予定数の代わりにjinjer実績の出勤日数が目標値計算に使われます。\n（確定後も管理画面から手動修正は可能です）\n\n実行しますか？`)) {
+    return;
+  }
+  const btn = document.getElementById("confirm-btn");
+  btn.disabled = true;
+  btn.textContent = "確定処理中...";
+  try {
+    const res = await fetch(`${BASE_URL}/staff/confirm_month`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ month: month })
+    });
+    const data = await res.json();
+    if (data.error) {
+      alert("エラー: " + data.error);
+    } else {
+      alert(data.message || "確定しました");
+      await loadData();
+    }
+  } catch(e) {
+    alert("通信エラー: " + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "この月を確定する";
+  }
+}
+
+function renderSummary(data) {
+  const totalSales = data.reduce((s, d) => s + d.sales, 0);
+  const totalApo = data.reduce((s, d) => s + d.apo_amount, 0);
+  const totalCxl = data.reduce((s, d) => s + d.cxl_amount, 0);
+  const totalFb = data.reduce((s, d) => s + d.fb_amount, 0);
+  const over100 = data.filter(d => d.achieve_rate >= 100).length;
+  const active = data.filter(d => d.work_days > 0).length;
+
+  document.getElementById("summary-bar").innerHTML = `
+    <div class="summary-item"><span class="summary-label">総売上</span><span class="summary-value">${fmt(totalSales)}</span></div>
+    <div class="summary-item"><span class="summary-label">アポ取得</span><span class="summary-value" style="color:#2eb872">${fmt(totalApo)}</span></div>
+    <div class="summary-item"><span class="summary-label">CXL</span><span class="summary-value" style="color:#d9534f">▲${fmt(totalCxl)}</span></div>
+    <div class="summary-item"><span class="summary-label">FB</span><span class="summary-value" style="color:#5a9cf8">${fmt(totalFb)}</span></div>
+    <div class="summary-item"><span class="summary-label">達成者数</span><span class="summary-value" style="color:#d97a3f">${over100}名</span></div>
+    <div class="summary-item"><span class="summary-label">稼働人数</span><span class="summary-value">${active}名</span></div>
+  `;
+}
+
+function sortTable(key) {
+  if (sortKey === key) sortDir *= -1;
+  else { sortKey = key; sortDir = -1; }
+  renderTable();
+}
+
+function getRankBadge(rank) {
+  const map = {
+    "トップ": { cls: "badge-top", label: "トップ" },
+    "ミドル": { cls: "badge-middle", label: "ミドル" },
+    "ルーキープラス": { cls: "badge-rookie-plus", label: "R+" },
+    "ルーキー": { cls: "badge-rookie", label: "ルーキー" },
+    "管理者": { cls: "badge-manager", label: "管理者" },
+    "社員": { cls: "badge-staff", label: "社員" },
+  };
+  return map[rank] || { cls: "badge-staff", label: rank };
+}
+
+function fmt(n) {
+  if (n == null) return "-";
+  return "¥" + n.toLocaleString();
+}
+
+// ============================================================
+// FBキャンペーン管理
+// ============================================================
+async function loadCampaigns() {
+  const loading = document.getElementById("fb-loading");
+  const table = document.getElementById("fb-table");
+  loading.style.display = "block";
+  table.style.display = "none";
+  try {
+    const res = await fetch(`${BASE_URL}/staff/fb_campaigns`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const data = await res.json();
+    allCampaigns = data.data || [];
+    renderCampaignTable();
+  } catch(e) {
+    loading.textContent = "読み込みエラー: " + e.message;
+  }
+}
+
+function renderCampaignTable() {
+  const tbody = document.getElementById("fb-table-body");
+  if (allCampaigns.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#c9a07a;padding:24px">キャンペーンが登録されていません</td></tr>`;
+  } else {
+    tbody.innerHTML = allCampaigns.map(c => {
+      const catCls = c.category.includes("ペナルティ") ? "cat-penalty" : c.category.includes("ボーナス") ? "cat-bonus" : "cat-default";
+      const calcLabel = c.calc_type === "fixed" ? "固定額" : "件数×単価";
+      const amountLabel = c.calc_type === "fixed" ? fmt(c.amount) : fmt(c.amount) + " / 件";
+      const typesLabel = (c.target_types && c.target_types.length > 0) ? c.target_types.join("、") : "全種別";
+      const resendLabel = c.exclude_resend ? "除外する" : "除外しない";
+      const staffLabel = (c.target_staff_ids && c.target_staff_ids.length > 0) ? `${c.target_staff_ids.length}名指定` : "全員";
+
+      return `<tr>
+        <td>${c.name}</td>
+        <td><span class="cat-pill ${catCls}">${c.category}</span></td>
+        <td><span class="calc-pill">${calcLabel}</span></td>
+        <td>${c.start_date} 〜 ${c.end_date}</td>
+        <td class="num">${amountLabel}</td>
+        <td>${typesLabel}</td>
+        <td>${resendLabel}</td>
+        <td>${staffLabel}</td>
+        <td>
+          <button class="action-btn" onclick="editCampaign(${c.id})">編集</button>
+          <button class="action-btn delete" onclick="deleteCampaign(${c.id})">削除</button>
+        </td>
+      </tr>`;
+    }).join("");
+  }
+  document.getElementById("fb-loading").style.display = "none";
+  document.getElementById("fb-table").style.display = "table";
+}
+
+function buildStaffCheckboxes() {
+  const box = document.getElementById("staff-checkbox-box");
+  const sorted = [...allData].sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+  box.innerHTML = sorted.map(d => `
+    <div class="staff-checkbox-row" data-name="${d.name}">
+      <input type="checkbox" id="staff-chk-${d.staff_id}" value="${d.staff_id}">
+      <label for="staff-chk-${d.staff_id}">${d.name}（${d.site}）</label>
+    </div>
+  `).join("");
+}
+
+function filterStaffCheckboxes() {
+  const query = document.getElementById("staff-search").value.trim();
+  const rows = document.querySelectorAll("#staff-checkbox-box .staff-checkbox-row");
+  rows.forEach(row => {
+    const name = row.getAttribute("data-name");
+    row.style.display = name.includes(query) ? "flex" : "none";
+  });
+}
+
+function onCategoryChange() {
+  const sel = document.getElementById("campaign-category-select");
+  const other = document.getElementById("campaign-category-other");
+  other.style.display = sel.value === "__other__" ? "block" : "none";
+}
+
+function onCalcTypeChange() {
+  const calcType = document.getElementById("campaign-calc-type").value;
+  const amountLabel = document.getElementById("campaign-amount-label");
+  const typeGroup = document.getElementById("campaign-type-group");
+  const resendGroup = document.getElementById("campaign-resend-group");
+  const staffNote = document.getElementById("campaign-staff-note");
+  const staffLabel = document.getElementById("campaign-staff-label");
+
+  if (calcType === "fixed") {
+    amountLabel.textContent = "付与金額（固定総額）";
+    typeGroup.style.display = "none";
+    resendGroup.style.display = "none";
+    staffLabel.textContent = "対象スタッフ（固定額の場合は1名以上選択してください）";
+    staffNote.textContent = "固定額の場合、選択したスタッフ全員に同額が付与されます";
+    staffNote.style.color = "#d97a3f";
+  } else {
+    amountLabel.textContent = "付与金額（1件あたり）";
+    typeGroup.style.display = "block";
+    resendGroup.style.display = "block";
+    staffLabel.textContent = "対象スタッフ（未選択＝全員対象）";
+    staffNote.textContent = "未選択の場合、全スタッフが対象になります";
+    staffNote.style.color = "#c9a07a";
+  }
+}
+
+function openCampaignModal() {
+  document.getElementById("campaign-modal-title").textContent = "新規FBキャンペーン作成";
+  document.getElementById("campaign-id").value = "";
+  document.getElementById("campaign-name").value = "";
+  document.getElementById("campaign-category-select").value = "勤怠ボーナス";
+  document.getElementById("campaign-category-other").value = "";
+  document.getElementById("campaign-category-other").style.display = "none";
+  document.getElementById("campaign-calc-type").value = "per_unit";
+  document.getElementById("campaign-start").value = "";
+  document.getElementById("campaign-end").value = "";
+  document.getElementById("campaign-amount").value = "";
+  document.getElementById("type-new").checked = false;
+  document.getElementById("type-new-next").checked = false;
+  document.getElementById("type-cancel-readjust").checked = false;
+  document.getElementById("campaign-exclude-resend").checked = true;
+  document.getElementById("staff-search").value = "";
+  document.querySelectorAll("#staff-checkbox-box input[type=checkbox]").forEach(c => c.checked = false);
+  document.querySelectorAll("#staff-checkbox-box .staff-checkbox-row").forEach(r => r.style.display = "flex");
+  document.getElementById("campaign-msg").textContent = "";
+  onCalcTypeChange();
+  document.getElementById("campaign-modal").classList.add("active");
+}
+
+function closeCampaignModal() {
+  document.getElementById("campaign-modal").classList.remove("active");
+}
+
+function editCampaign(id) {
+  const c = allCampaigns.find(x => x.id === id);
+  if (!c) return;
+
+  document.getElementById("campaign-modal-title").textContent = "FBキャンペーン編集";
+  document.getElementById("campaign-id").value = c.id;
+  document.getElementById("campaign-name").value = c.name;
+
+  const standardCategories = ["勤怠ボーナス","勤怠ペナルティ","行動量ボーナス","イベントボーナス","トッププレイヤーボーナス"];
+  if (standardCategories.includes(c.category)) {
+    document.getElementById("campaign-category-select").value = c.category;
+    document.getElementById("campaign-category-other").style.display = "none";
+    document.getElementById("campaign-category-other").value = "";
+  } else {
+    document.getElementById("campaign-category-select").value = "__other__";
+    document.getElementById("campaign-category-other").style.display = "block";
+    document.getElementById("campaign-category-other").value = c.category;
+  }
+
+  document.getElementById("campaign-calc-type").value = c.calc_type;
+  document.getElementById("campaign-start").value = c.start_date;
+  document.getElementById("campaign-end").value = c.end_date;
+  document.getElementById("campaign-amount").value = c.amount;
+
+  document.getElementById("type-new").checked = (c.target_types || []).includes("新規");
+  document.getElementById("type-new-next").checked = (c.target_types || []).includes("新規【翌営業日】");
+  document.getElementById("type-cancel-readjust").checked = (c.target_types || []).includes("キャンセルの再調整");
+  document.getElementById("campaign-exclude-resend").checked = c.exclude_resend !== false;
+
+  document.getElementById("staff-search").value = "";
+  document.querySelectorAll("#staff-checkbox-box .staff-checkbox-row").forEach(r => r.style.display = "flex");
+  document.querySelectorAll("#staff-checkbox-box input[type=checkbox]").forEach(chk => {
+    chk.checked = (c.target_staff_ids || []).includes(chk.value);
+  });
+
+  document.getElementById("campaign-msg").textContent = "";
+  onCalcTypeChange();
+  document.getElementById("campaign-modal").classList.add("active");
+}
+
+async function saveCampaign() {
+  const msg = document.getElementById("campaign-msg");
+  const btn = document.getElementById("campaign-submit");
+
+  const id = document.getElementById("campaign-id").value;
+  const name = document.getElementById("campaign-name").value.trim();
+  let category = document.getElementById("campaign-category-select").value;
+  if (category === "__other__") {
+    category = document.getElementById("campaign-category-other").value.trim();
+  }
+  const calcType = document.getElementById("campaign-calc-type").value;
+  const startDate = document.getElementById("campaign-start").value;
+  const endDate = document.getElementById("campaign-end").value;
+  const amount = document.getElementById("campaign-amount").value;
+
+  const targetTypes = [];
+  if (document.getElementById("type-new").checked) targetTypes.push("新規");
+  if (document.getElementById("type-new-next").checked) targetTypes.push("新規【翌営業日】");
+  if (document.getElementById("type-cancel-readjust").checked) targetTypes.push("キャンセルの再調整");
+
+  const excludeResend = document.getElementById("campaign-exclude-resend").checked;
+
+  const targetStaffIds = [];
+  document.querySelectorAll("#staff-checkbox-box input[type=checkbox]:checked").forEach(c => {
+    targetStaffIds.push(c.value);
+  });
+
+  if (!name || !category || !calcType || !startDate || !endDate || amount === "") {
     msg.style.color = "#d9534f";
+    msg.textContent = "必須項目を入力してください";
+    return;
+  }
+  if (startDate > endDate) {
+    msg.style.color = "#d9534f";
+    msg.textContent = "開始日は終了日より前にしてください";
+    return;
+  }
+  if (calcType === "fixed" && targetStaffIds.length === 0) {
+    msg.style.color = "#d9534f";
+    msg.textContent = "固定額の場合、対象スタッフを1名以上選択してください";
+    return;
+  }
+
+  const payload = {
+    name, category,
+    calc_type: calcType,
+    start_date: startDate,
+    end_date: endDate,
+    amount: parseInt(amount),
+    target_types: targetTypes,
+    exclude_resend: excludeResend,
+    target_staff_ids: targetStaffIds
+  };
+
+  btn.disabled = true;
+  try {
+    const url = id ? `${BASE_URL}/staff/fb_campaigns/${id}` : `${BASE_URL}/staff/fb_campaigns`;
+    const method = id ? "PUT" : "POST";
+    const res = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.error) {
+      msg.style.color = "#d9534f";
+      msg.textContent = data.error;
+    } else {
+      msg.style.color = "#2eb872";
+      msg.textContent = "保存しました";
+      await loadCampaigns();
+      await loadData();
+      setTimeout(closeCampaignModal, 800);
+    }
+  } catch(e) {
+    msg.style.color = "#d9534f";
+    msg.textContent = "通信エラー: " + e.message;
   } finally {
     btn.disabled = false;
   }
 }
 
-function fmt(n) {
-  if (n == null || n === 0) return "¥0";
-  return "¥" + n.toLocaleString();
+async function deleteCampaign(id) {
+  if (!confirm("このキャンペーンを削除しますか？")) return;
+  try {
+    const res = await fetch(`${BASE_URL}/staff/fb_campaigns/${id}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (data.error) {
+      alert("エラー: " + data.error);
+    } else {
+      await loadCampaigns();
+      await loadData();
+    }
+  } catch(e) {
+    alert("通信エラー: " + e.message);
+  }
+}
+
+// ============================================================
+// アップロード処理
+// ============================================================
+async function uploadAll() {
+  const btn = document.getElementById("update-btn");
+  const msg = document.getElementById("status-msg");
+  btn.disabled = true;
+  msg.textContent = "アップロード中...";
+  try {
+    const apoFile = document.getElementById("apo-file").files[0];
+    const prodFile = document.getElementById("prod-file").files[0];
+    const attFile = document.getElementById("att-file").files[0];
+    if (apoFile) { msg.textContent = "① アポリスト処理中..."; await uploadApo(apoFile); }
+    if (prodFile) { msg.textContent = "② 生産性レポート処理中..."; await uploadProd(prodFile); }
+    if (attFile) { msg.textContent = "③ jinjer処理中..."; await uploadAtt(attFile); }
+    msg.textContent = "✅ 更新完了";
+    await loadData();
+  } catch(e) {
+    msg.textContent = "❌ エラー: " + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function uploadApo(file) {
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, { type: "array", cellDates: true });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { raw: false, dateNF: "yyyy/mm/dd" });
+  const rawRecords = rows.map(r => ({
+    appointment_id: String(r["アポイントID"] || "").trim(),
+    staff_id: String(r["社員番号"] || "").trim(),
+    acquired_date: r["取得日"] ? formatDate(r["取得日"]) : null,
+    amount: parseInt(String(r["案件金額"] || "0").replace(/,/g, "")) || 0,
+    cancel_date: String(r["キャンセル受付日"] || "").trim() || null,
+    fb_date: r["フィードバック受付日"] ? formatDate(r["フィードバック受付日"]) : null,
+    fb_amount: parseInt(String(r["達成金額"] || "0").replace(/,/g, "")) || 0,
+    apo_type: String(r["種別"] || "").trim() || null,
+    resend_status: String(r["再送当否"] || "").trim() || null,
+  })).filter(r => r.staff_id);
+  const seen = new Set();
+  const records = rawRecords.filter(r => {
+    const key = r.appointment_id || `${r.staff_id}_${r.acquired_date}_${r.amount}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  const res = await fetch(`${BASE_URL}/staff/upload/appointments_json`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ records })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+}
+
+async function uploadProd(file) {
+  const text = await file.text();
+  const rows = parseCSV(text);
+  const records = rows.map(r => ({
+    staff_id: String(r["社員番号"] || "").trim(),
+    call_date: r["日付"] ? formatDate(r["日付"]) : null,
+    call_count: parseInt(r["コール件数"] || "0") || 0,
+  })).filter(r => r.staff_id);
+  const res = await fetch(`${BASE_URL}/staff/upload/productivity_json`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ records })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+}
+
+async function uploadAtt(file) {
+  let csvText = "";
+  if (file.name.endsWith(".zip")) {
+    const buf = await file.arrayBuffer();
+    const zip = await JSZip.loadAsync(buf);
+    const allFiles = Object.values(zip.files);
+    const csvFile = allFiles.find(f => !f.dir && f.name.endsWith(".csv"));
+    if (!csvFile) throw new Error("ZIP内にCSVが見つかりません");
+    const csvBuf = await csvFile.async("arraybuffer");
+    csvText = new TextDecoder("shift-jis").decode(csvBuf);
+  } else {
+    const buf = await file.arrayBuffer();
+    csvText = new TextDecoder("shift-jis").decode(buf);
+  }
+  const rows = parseCSV(csvText);
+  const records = rows.map(r => {
+    const workTime = String(r["実労働時間"] || "00:00").trim();
+    let workHours = 0;
+    try {
+      const [h, m] = workTime.split(":");
+      workHours = Math.round((parseInt(h) + parseInt(m) / 60) * 1000) / 1000;
+    } catch(e) {}
+    return {
+      staff_id: String(r["*従業員ID"] || "").trim(),
+      work_date: r["*年月日"] ? formatDate(r["*年月日"]) : null,
+      work_hours: workHours,
+    };
+  }).filter(r => r.staff_id);
+  const res = await fetch(`${BASE_URL}/staff/upload/attendance_json`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ records })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+}
+
+function formatDate(val) {
+  if (!val) return null;
+  const d = new Date(val);
+  if (isNaN(d)) return String(val).trim();
+  return d.toISOString().split("T")[0];
+}
+
+function parseCSV(text) {
+  const lines = text.split("\n").filter(l => l.trim());
+  const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g, ""));
+  return lines.slice(1).map(line => {
+    const vals = line.split(",").map(v => v.trim().replace(/^"|"$/g, ""));
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = vals[i] || "");
+    return obj;
+  });
 }
 
 loadData();
