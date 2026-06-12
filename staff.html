@@ -71,6 +71,12 @@
   .bar-milestone { position: absolute; top: -3px; height: 16px; width: 2px; background: #fff; }
   .bar-labels { display: flex; justify-content: space-between; font-size: 11px; color: #c9a07a; }
 
+  /* 出勤予定数入力 */
+  .planned-input { width: 70px; padding: 8px; border: 1px solid #f5e6d8; border-radius: 8px; font-size: 18px; font-weight: 700; text-align: center; color: #2a2622; background: #fff7f1; }
+  .planned-save-btn { background: #e8a87c; border: none; color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .planned-save-btn:hover { background: #d97a3f; }
+  .planned-save-btn:disabled { background: #f0e4da; color: #c9a07a; cursor: not-allowed; }
+
   .loading { text-align: center; padding: 60px; color: #c9a07a; }
 </style>
 </head>
@@ -119,7 +125,7 @@
       </div>
     </div>
 
-    <!-- KPI -->
+    <!-- KPI：達成まであと・時給 -->
     <div class="kpi-grid">
       <div class="kpi-card">
         <div class="kpi-label">達成まであと</div>
@@ -132,9 +138,22 @@
         <div class="kpi-sub">本人ステータス基準</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">出勤日数</div>
+        <div class="kpi-label" id="work-days-label">出勤日数</div>
         <div class="kpi-value" id="info-days">-</div>
-        <div class="kpi-sub">当月実績</div>
+        <div class="kpi-sub" id="work-days-sub">当月実績</div>
+      </div>
+    </div>
+
+    <!-- 出勤予定数入力 -->
+    <div class="kpi-grid" id="planned-grid" style="grid-template-columns: 1fr;">
+      <div class="kpi-card" id="planned-card">
+        <div class="kpi-label">今月の出勤予定数</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+          <input type="number" class="planned-input" id="planned-input" min="0" max="31">
+          <span style="font-size:14px;color:#8a7a6d">日</span>
+          <button class="planned-save-btn" id="planned-save-btn" onclick="savePlannedDays()">保存</button>
+        </div>
+        <div class="kpi-sub" id="planned-msg">この月の目標値は、ここで設定した出勤予定数を基準に計算されます</div>
       </div>
     </div>
 
@@ -270,7 +289,22 @@ function renderPage(d) {
   } else {
     wageEl.textContent = d.hourly_wage > 0 ? "¥" + d.hourly_wage.toLocaleString() : "-";
   }
+
+  // 出勤日数（実績）
   document.getElementById("info-days").textContent = d.work_days + "日";
+  document.getElementById("work-days-sub").textContent = d.is_confirmed ? "確定済み（実績）" : "現時点の実績";
+
+  // 出勤予定数入力欄
+  const plannedCard = document.getElementById("planned-card");
+  if (d.is_confirmed) {
+    plannedCard.innerHTML = `
+      <div class="kpi-label">出勤予定数（確定済）</div>
+      <div class="kpi-value" style="color:#c9a07a">${d.planned_work_days}日</div>
+      <div class="kpi-sub">この月は確定済みのため編集できません。目標値は実績出勤日数で計算されています。</div>
+    `;
+  } else {
+    document.getElementById("planned-input").value = d.planned_work_days || "";
+  }
 
   // 目標バー
   const maxVal = d.target_achieve > 0 ? d.target_achieve * 1.5 : d.sales * 1.5 || 1;
@@ -288,6 +322,41 @@ function renderPage(d) {
 
   document.getElementById("loading").style.display = "none";
   document.getElementById("content").style.display = "block";
+}
+
+async function savePlannedDays() {
+  const val = document.getElementById("planned-input").value;
+  const msg = document.getElementById("planned-msg");
+  const btn = document.getElementById("planned-save-btn");
+  if (val === "" || isNaN(val)) {
+    msg.textContent = "数値を入力してください";
+    msg.style.color = "#d9534f";
+    return;
+  }
+  btn.disabled = true;
+  try {
+    const res = await fetch(`${BASE_URL}/staff/target`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ staff_id: staffId, month: month, planned_work_days: parseInt(val) })
+    });
+    const data = await res.json();
+    if (data.error) {
+      msg.textContent = data.error;
+      msg.style.color = "#d9534f";
+    } else {
+      msg.textContent = "保存しました（再読み込みで目標値が更新されます）";
+      msg.style.color = "#2eb872";
+    }
+  } catch(e) {
+    msg.textContent = "通信エラー";
+    msg.style.color = "#d9534f";
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 function fmt(n) {
