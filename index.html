@@ -6,83 +6,84 @@
 <title>PT事業部 スタッフ実績管理</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #0f0f13; color: #e2e2e8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; }
+  body { background: #fdfaf7; color: #2a2622; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; }
 
-  .header { background: #16161e; border-bottom: 1px solid #2a2a35; padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 24px; position: sticky; top: 0; z-index: 100; }
-  .header-title { font-size: 15px; font-weight: 600; color: #fff; white-space: nowrap; }
-  .header-divider { width: 1px; height: 20px; background: #2a2a35; }
+  .header { background: #fff; border-bottom: 1px solid #f0e4da; padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 24px; position: sticky; top: 0; z-index: 100; }
+  .header-title { font-size: 15px; font-weight: 700; color: #2a2622; white-space: nowrap; }
+  .header-divider { width: 1px; height: 20px; background: #f0e4da; }
   .header-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex: 1; }
   .header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
-  .logout-btn { background: transparent; border: 1px solid #2a2a35; color: #888; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
-  .logout-btn:hover { border-color: #4a4a5a; color: #e2e2e8; }
+  .logout-btn { background: transparent; border: 1px solid #f0e4da; color: #b08968; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+  .logout-btn:hover { border-color: #e8a87c; color: #2a2622; }
 
   select, input[type="month"] {
-    background: #1e1e28; border: 1px solid #2a2a35; color: #e2e2e8;
+    background: #fff7f1; border: 1px solid #f0e4da; color: #2a2622;
     padding: 6px 10px; border-radius: 6px; font-size: 13px; cursor: pointer; outline: none;
   }
-  select:hover, input[type="month"]:hover { border-color: #4a4a5a; }
+  select:hover, input[type="month"]:hover { border-color: #e8a87c; }
 
-  .upload-section { background: #16161e; border-bottom: 1px solid #2a2a35; padding: 12px 24px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .upload-section { background: #fff; border-bottom: 1px solid #f0e4da; padding: 12px 24px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
   .upload-item { display: flex; align-items: center; gap: 8px; }
-  .upload-label { font-size: 12px; color: #888; white-space: nowrap; }
+  .upload-label { font-size: 12px; color: #c9a07a; white-space: nowrap; }
   .upload-input { display: none; }
-  .upload-btn { background: #1e1e28; border: 1px solid #2a2a35; color: #e2e2e8; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; white-space: nowrap; }
-  .upload-btn:hover { border-color: #4a4a5a; }
-  .upload-filename { font-size: 12px; color: #5a9cf8; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .update-btn { background: #5a9cf8; border: none; color: #fff; padding: 6px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 500; white-space: nowrap; margin-left: 8px; }
-  .update-btn:hover { background: #4a8ce8; }
-  .update-btn:disabled { background: #2a2a35; color: #666; cursor: not-allowed; }
-  .status-msg { font-size: 12px; color: #888; }
+  .upload-btn { background: #fff7f1; border: 1px solid #f0e4da; color: #2a2622; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; white-space: nowrap; }
+  .upload-btn:hover { border-color: #e8a87c; }
+  .upload-filename { font-size: 12px; color: #d97a3f; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .update-btn { background: #e8a87c; border: none; color: #fff; padding: 6px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 600; white-space: nowrap; margin-left: 8px; }
+  .update-btn:hover { background: #d97a3f; }
+  .update-btn:disabled { background: #f0e4da; color: #c9a07a; cursor: not-allowed; }
+  .status-msg { font-size: 12px; color: #c9a07a; }
 
-  .summary-bar { padding: 12px 24px; display: flex; gap: 24px; border-bottom: 1px solid #2a2a35; flex-wrap: wrap; }
+  .summary-bar { background: #fff; padding: 16px 24px; display: flex; gap: 24px; border-bottom: 1px solid #f0e4da; flex-wrap: wrap; }
   .summary-item { display: flex; flex-direction: column; gap: 2px; }
-  .summary-label { font-size: 11px; color: #666; }
-  .summary-value { font-size: 18px; font-weight: 600; color: #fff; }
+  .summary-label { font-size: 11px; color: #c9a07a; }
+  .summary-value { font-size: 18px; font-weight: 800; color: #2a2622; }
 
   .table-wrap { padding: 16px 24px; overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; }
-  th { background: #16161e; color: #888; font-size: 11px; font-weight: 500; text-align: left; padding: 8px 12px; border-bottom: 1px solid #2a2a35; white-space: nowrap; cursor: pointer; user-select: none; }
-  th:hover { color: #e2e2e8; }
-  td { padding: 10px 12px; border-bottom: 1px solid #1e1e28; white-space: nowrap; font-size: 13px; }
-  tr:hover td { background: #1a1a24; }
-  .staff-link { color: #5a9cf8; text-decoration: none; cursor: pointer; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; }
+  th { background: #fff7f1; color: #c9a07a; font-size: 11px; font-weight: 600; text-align: left; padding: 10px 12px; border-bottom: 1px solid #f0e4da; white-space: nowrap; cursor: pointer; user-select: none; }
+  th:hover { color: #d97a3f; }
+  td { padding: 10px 12px; border-bottom: 1px solid #f7eee5; white-space: nowrap; font-size: 13px; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fffaf5; }
+  .staff-link { color: #d97a3f; text-decoration: none; cursor: pointer; font-weight: 600; }
   .staff-link:hover { text-decoration: underline; }
 
   .rate-cell { display: flex; align-items: center; gap: 8px; }
-  .rate-bar-bg { width: 80px; height: 4px; background: #2a2a35; border-radius: 2px; overflow: hidden; }
-  .rate-bar { height: 100%; border-radius: 2px; transition: width 0.3s; }
-  .rate-text { font-size: 13px; font-weight: 500; min-width: 45px; }
+  .rate-bar-bg { width: 80px; height: 5px; background: #f7eee5; border-radius: 3px; overflow: hidden; }
+  .rate-bar { height: 100%; border-radius: 3px; transition: width 0.3s; }
+  .rate-text { font-size: 13px; font-weight: 700; min-width: 45px; }
 
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
-  .badge-top { background: #2d1f5e; color: #a78bfa; }
-  .badge-middle { background: #1f3a5e; color: #60a5fa; }
-  .badge-rookie-plus { background: #1f4a3a; color: #34d399; }
-  .badge-rookie { background: #1a2a1a; color: #6ee7b7; }
-  .badge-manager { background: #3a2a1a; color: #fbbf24; }
-  .badge-staff { background: #2a2a2a; color: #9ca3af; }
-  .monthly-tag { font-size: 10px; color: #888; background: #2a2a35; padding: 1px 5px; border-radius: 3px; margin-left: 4px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .badge-top { background: #fdeee3; color: #d97a3f; }
+  .badge-middle { background: #eaf2fd; color: #5a9cf8; }
+  .badge-rookie-plus { background: #eafaf0; color: #2eb872; }
+  .badge-rookie { background: #f0faf4; color: #5fc98a; }
+  .badge-manager { background: #fff4e0; color: #cf9a3a; }
+  .badge-staff { background: #f3f0ec; color: #a89884; }
+  .monthly-tag { font-size: 10px; color: #b08968; background: #fff4e8; padding: 1px 5px; border-radius: 3px; margin-left: 4px; }
 
-  .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; }
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(42,38,34,0.4); z-index: 200; align-items: center; justify-content: center; }
   .modal-overlay.active { display: flex; }
-  .modal { background: #16161e; border: 1px solid #2a2a35; border-radius: 12px; padding: 32px; width: 100%; max-width: 480px; }
-  .modal-title { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 24px; }
+  .modal { background: #fff; border: 1px solid #f0e4da; border-radius: 14px; padding: 32px; width: 100%; max-width: 480px; }
+  .modal-title { font-size: 16px; font-weight: 700; color: #2a2622; margin-bottom: 24px; }
   .form-group { margin-bottom: 16px; }
-  .form-label { font-size: 12px; color: #888; margin-bottom: 6px; display: block; }
-  .form-input { width: 100%; background: #1e1e28; border: 1px solid #2a2a35; color: #e2e2e8; padding: 8px 12px; border-radius: 6px; font-size: 13px; outline: none; }
-  .form-input:focus { border-color: #5a9cf8; }
+  .form-label { font-size: 12px; color: #c9a07a; margin-bottom: 6px; display: block; }
+  .form-input { width: 100%; background: #fff7f1; border: 1px solid #f0e4da; color: #2a2622; padding: 8px 12px; border-radius: 6px; font-size: 13px; outline: none; }
+  .form-input:focus { border-color: #e8a87c; }
   .modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 24px; }
-  .btn-cancel { background: transparent; border: 1px solid #2a2a35; color: #888; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
-  .btn-submit { background: #5a9cf8; border: none; color: #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; }
-  .btn-submit:disabled { background: #2a2a35; color: #666; cursor: not-allowed; }
+  .btn-cancel { background: transparent; border: 1px solid #f0e4da; color: #c9a07a; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .btn-submit { background: #e8a87c; border: none; color: #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+  .btn-submit:disabled { background: #f0e4da; color: #c9a07a; cursor: not-allowed; }
   .modal-msg { font-size: 12px; margin-top: 8px; text-align: center; }
-  .register-btn { background: #1e1e28; border: 1px solid #2a2a35; color: #e2e2e8; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
-  .register-btn:hover { border-color: #5a9cf8; color: #5a9cf8; }
+  .register-btn { background: #fff7f1; border: 1px solid #f0e4da; color: #2a2622; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+  .register-btn:hover { border-color: #e8a87c; color: #d97a3f; }
 
-  .loading { text-align: center; padding: 60px; color: #666; }
+  .loading { text-align: center; padding: 60px; color: #c9a07a; }
   .num { font-variant-numeric: tabular-nums; }
-  .num-green { color: #34d399; }
-  .num-yellow { color: #fbbf24; }
-  .num-red { color: #f87171; }
+  .num-green { color: #d97a3f; }
+  .num-yellow { color: #cf9a3a; }
+  .num-red { color: #d9534f; }
 </style>
 </head>
 <body>
@@ -260,15 +261,15 @@ async function registerStaff() {
     });
     const data = await res.json();
     if (data.error) {
-      msg.style.color = "#f87171";
+      msg.style.color = "#d9534f";
       msg.textContent = data.error;
     } else {
-      msg.style.color = "#34d399";
+      msg.style.color = "#2eb872";
       msg.textContent = "登録完了しました";
       setTimeout(closeRegisterModal, 1500);
     }
   } catch(e) {
-    msg.style.color = "#f87171";
+    msg.style.color = "#d9534f";
     msg.textContent = "通信エラー";
   } finally {
     btn.disabled = false;
@@ -315,20 +316,20 @@ function renderTable() {
   tbody.innerHTML = data.map(d => {
     const rate = d.achieve_rate ?? 0;
     const rateColor = rate >= 100 ? "num-green" : rate >= 80 ? "num-yellow" : "num-red";
-    const barColor = rate >= 100 ? "#34d399" : rate >= 80 ? "#fbbf24" : "#f87171";
+    const barColor = rate >= 100 ? "#e8a87c" : rate >= 80 ? "#f0c987" : "#e89a9a";
     const barWidth = Math.min(rate, 150);
     const rankBadge = getRankBadge(d.rank);
     const monthlyTag = d.is_monthly ? '<span class="monthly-tag">月給</span>' : "";
-    const wageDisplay = d.is_monthly ? '<span style="color:#fbbf24">月給制</span>' : d.hourly_wage > 0 ? '¥' + d.hourly_wage.toLocaleString() : '-';
+    const wageDisplay = d.is_monthly ? '<span style="color:#cf9a3a">月給制</span>' : d.hourly_wage > 0 ? '¥' + d.hourly_wage.toLocaleString() : '-';
 
     return `<tr>
       <td><a class="staff-link" href="staff.html?id=${d.staff_id}&month=${month}">${d.name}</a>${monthlyTag}</td>
       <td><span class="badge ${rankBadge.cls}">${rankBadge.label}</span></td>
       <td>${d.site}</td>
       <td class="num">${fmt(d.sales)}</td>
-      <td class="num" style="color:#34d399">${fmt(d.apo_amount)}</td>
-      <td class="num">${d.cxl_amount > 0 ? '<span style="color:#f87171">▲' + fmt(d.cxl_amount) + '</span>' : '-'}</td>
-      <td class="num" style="color:#60a5fa">${d.fb_amount > 0 ? fmt(d.fb_amount) : '-'}</td>
+      <td class="num" style="color:#2eb872">${fmt(d.apo_amount)}</td>
+      <td class="num">${d.cxl_amount > 0 ? '<span style="color:#d9534f">▲' + fmt(d.cxl_amount) + '</span>' : '-'}</td>
+      <td class="num" style="color:#5a9cf8">${d.fb_amount > 0 ? fmt(d.fb_amount) : '-'}</td>
       <td class="num">${d.target_achieve > 0 ? fmt(d.target_achieve) : '-'}</td>
       <td class="num">${d.target_maintain > 0 ? fmt(d.target_maintain) : '-'}</td>
       <td>
@@ -356,10 +357,10 @@ function renderSummary(data) {
 
   document.getElementById("summary-bar").innerHTML = `
     <div class="summary-item"><span class="summary-label">総売上</span><span class="summary-value">${fmt(totalSales)}</span></div>
-    <div class="summary-item"><span class="summary-label">アポ取得</span><span class="summary-value" style="color:#34d399">${fmt(totalApo)}</span></div>
-    <div class="summary-item"><span class="summary-label">CXL</span><span class="summary-value" style="color:#f87171">▲${fmt(totalCxl)}</span></div>
-    <div class="summary-item"><span class="summary-label">FB</span><span class="summary-value" style="color:#60a5fa">${fmt(totalFb)}</span></div>
-    <div class="summary-item"><span class="summary-label">達成者数</span><span class="summary-value" style="color:#34d399">${over100}名</span></div>
+    <div class="summary-item"><span class="summary-label">アポ取得</span><span class="summary-value" style="color:#2eb872">${fmt(totalApo)}</span></div>
+    <div class="summary-item"><span class="summary-label">CXL</span><span class="summary-value" style="color:#d9534f">▲${fmt(totalCxl)}</span></div>
+    <div class="summary-item"><span class="summary-label">FB</span><span class="summary-value" style="color:#5a9cf8">${fmt(totalFb)}</span></div>
+    <div class="summary-item"><span class="summary-label">達成者数</span><span class="summary-value" style="color:#d97a3f">${over100}名</span></div>
     <div class="summary-item"><span class="summary-label">稼働人数</span><span class="summary-value">${active}名</span></div>
   `;
 }
