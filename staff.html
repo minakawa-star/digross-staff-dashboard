@@ -15,6 +15,8 @@
   .header-right { display: flex; align-items: center; gap: 12px; }
   .logout-btn { background: transparent; border: 1px solid #f0e4da; color: #b08968; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
   .logout-btn:hover { border-color: #e8a87c; color: #2a2622; }
+  .back-btn { background: #fff7f1; border: 1px solid #e8a87c; color: #d97a3f; padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+  .back-btn:hover { background: #fdeee3; }
 
   select, input[type="month"] {
     background: #fff7f1; border: 1px solid #f0e4da; color: #2a2622;
@@ -77,6 +79,21 @@
   .planned-save-btn:hover { background: #d97a3f; }
   .planned-save-btn:disabled { background: #f0e4da; color: #c9a07a; cursor: not-allowed; }
 
+  /* FB内訳カード */
+  .fb-card { background: #fff; border: 1px solid #f5e6d8; border-radius: 14px; margin-bottom: 16px; overflow: hidden; }
+  .fb-header { padding: 16px 24px; border-bottom: 1px solid #f7eee5; font-size: 13px; font-weight: 700; color: #2a2622; display: flex; justify-content: space-between; align-items: center; }
+  .fb-total { font-size: 16px; font-weight: 800; color: #5a9cf8; }
+  .fb-table { width: 100%; border-collapse: collapse; }
+  .fb-table td { padding: 10px 24px; border-bottom: 1px solid #f7eee5; font-size: 13px; }
+  .fb-table tr:last-child td { border-bottom: none; }
+  .fb-table td:last-child { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .fb-cat-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-right: 8px; }
+  .fb-cat-default { background: #eaf2fd; color: #5a9cf8; }
+  .fb-cat-bonus { background: #eafaf0; color: #2eb872; }
+  .fb-cat-penalty { background: #fdecec; color: #d9534f; }
+  .fb-empty { padding: 24px; text-align: center; color: #c9a07a; font-size: 13px; }
+  .fb-count { font-size: 11px; color: #c9a07a; margin-left: 6px; }
+
   .loading { text-align: center; padding: 60px; color: #c9a07a; }
 </style>
 </head>
@@ -90,6 +107,7 @@
     </div>
   </div>
   <div class="header-right">
+    <a class="back-btn" id="back-to-admin-btn" href="index.html" style="display:none">← 管理画面へ</a>
     <input type="month" id="month-select" value="2026-06">
     <button class="logout-btn" onclick="logout()">ログアウト</button>
   </div>
@@ -123,6 +141,15 @@
         </div>
         <div class="donut-status" id="donut-status">-</div>
       </div>
+    </div>
+
+    <!-- FB内訳 -->
+    <div class="fb-card">
+      <div class="fb-header">
+        <span>FB内訳</span>
+        <span class="fb-total" id="fb-total">¥0</span>
+      </div>
+      <table class="fb-table" id="fb-breakdown-body"></table>
     </div>
 
     <!-- KPI：達成まであと・時給 -->
@@ -199,6 +226,11 @@ if (role !== "admin" && staffId !== storedStaffId) {
   window.location.href = `staff.html?id=${storedStaffId}&month=${month}`;
 }
 
+// 管理者の場合のみ「管理画面へ」ボタンを表示
+if (role === "admin") {
+  document.getElementById("back-to-admin-btn").style.display = "inline-flex";
+}
+
 document.getElementById("month-select").value = month;
 
 document.getElementById("month-select").addEventListener("change", e => {
@@ -231,6 +263,34 @@ async function loadData() {
   }
 }
 
+function fbCatClass(category) {
+  if (!category) return "fb-cat-default";
+  if (category.includes("ペナルティ")) return "fb-cat-penalty";
+  if (category.includes("ボーナス") || category.includes("達成評価")) return "fb-cat-bonus";
+  return "fb-cat-default";
+}
+
+function renderFbBreakdown(d) {
+  const breakdown = d.fb_breakdown || [];
+  const tbody = document.getElementById("fb-breakdown-body");
+
+  if (breakdown.length === 0) {
+    tbody.innerHTML = `<tr><td class="fb-empty" colspan="2">対象のFBはありません</td></tr>`;
+  } else {
+    tbody.innerHTML = breakdown.map(item => {
+      const cls = fbCatClass(item.category);
+      const countLabel = item.count != null ? `<span class="fb-count">（${item.count}件）</span>` : "";
+      const amountColor = item.amount < 0 ? "minus" : "";
+      return `<tr>
+        <td><span class="fb-cat-badge ${cls}">${item.category || "その他"}</span>${item.name || ""}${countLabel}</td>
+        <td class="${amountColor}">${fmt(item.amount)}</td>
+      </tr>`;
+    }).join("");
+  }
+
+  document.getElementById("fb-total").textContent = fmt(d.fb_amount);
+}
+
 function renderPage(d) {
   document.getElementById("staff-name").textContent = d.name;
   document.getElementById("staff-rank").textContent = d.rank + " / " + d.site;
@@ -245,10 +305,13 @@ function renderPage(d) {
     <tr><td>売上合計</td><td>${fmt(d.sales)}</td></tr>
     <tr><td>アポ取得金額</td><td class="plus">${fmt(d.apo_amount)}</td></tr>
     <tr><td>キャンセル金額</td><td class="minus">${d.cxl_amount > 0 ? '▲' + fmt(d.cxl_amount) : '-'}</td></tr>
-    <tr><td>FB金額</td><td class="blue">${d.fb_amount > 0 ? fmt(d.fb_amount) : '-'}</td></tr>
+    <tr><td>FB金額</td><td class="blue">${d.fb_amount > 0 ? fmt(d.fb_amount) : (d.fb_amount < 0 ? fmt(d.fb_amount) : '-')}</td></tr>
     <tr><td>達成目標</td><td>${d.target_achieve > 0 ? fmt(d.target_achieve) : '-'}</td></tr>
     <tr><td>維持目標</td><td>${d.target_maintain > 0 ? fmt(d.target_maintain) : '-'}</td></tr>
   `;
+
+  // FB内訳
+  renderFbBreakdown(d);
 
   // ドーナツ
   const circumference = 490;
