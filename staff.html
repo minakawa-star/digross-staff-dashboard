@@ -94,6 +94,17 @@
   .fb-empty { padding: 24px; text-align: center; color: #c9a07a; font-size: 13px; }
   .fb-count { font-size: 11px; color: #c9a07a; margin-left: 6px; }
 
+  /* インセンティブカード */
+  .inc-card { background: #fff; border: 1px solid #f5e6d8; border-radius: 14px; margin-bottom: 16px; overflow: hidden; }
+  .inc-header { padding: 16px 24px; border-bottom: 1px solid #f7eee5; font-size: 13px; font-weight: 700; color: #2a2622; display: flex; justify-content: space-between; align-items: center; }
+  .inc-total { font-size: 18px; font-weight: 800; color: #d97a3f; }
+  .inc-body { padding: 16px 24px; }
+  .inc-table { width: 100%; border-collapse: collapse; }
+  .inc-table td { padding: 6px 0; font-size: 12px; color: #8a7a6d; }
+  .inc-table td:last-child { text-align: right; font-weight: 600; color: #2a2622; font-variant-numeric: tabular-nums; }
+  .inc-na { padding: 24px; text-align: center; color: #c9a07a; font-size: 13px; }
+  .inc-formula { font-size: 11px; color: #c9a07a; margin-top: 12px; line-height: 1.6; padding-top: 12px; border-top: 1px solid #f7eee5; }
+
   .loading { text-align: center; padding: 60px; color: #c9a07a; }
 </style>
 </head>
@@ -150,6 +161,15 @@
         <span class="fb-total" id="fb-total">¥0</span>
       </div>
       <table class="fb-table" id="fb-breakdown-body"></table>
+    </div>
+
+    <!-- インセンティブ目標 -->
+    <div class="inc-card">
+      <div class="inc-header">
+        <span>インセンティブ目標</span>
+        <span class="inc-total" id="inc-total">-</span>
+      </div>
+      <div class="inc-body" id="inc-body"></div>
     </div>
 
     <!-- KPI：達成まであと・時給 -->
@@ -226,7 +246,6 @@ if (role !== "admin" && staffId !== storedStaffId) {
   window.location.href = `staff.html?id=${storedStaffId}&month=${month}`;
 }
 
-// 管理者の場合のみ「管理画面へ」ボタンを表示
 if (role === "admin") {
   document.getElementById("back-to-admin-btn").style.display = "inline-flex";
 }
@@ -291,6 +310,38 @@ function renderFbBreakdown(d) {
   document.getElementById("fb-total").textContent = fmt(d.fb_amount);
 }
 
+function renderIncentive(d) {
+  const totalEl = document.getElementById("inc-total");
+  const bodyEl = document.getElementById("inc-body");
+
+  if (d.incentive_status !== "ok" || d.incentive_target == null) {
+    totalEl.textContent = "-";
+    bodyEl.innerHTML = `<div class="inc-na">${d.incentive_status}</div>`;
+    return;
+  }
+
+  totalEl.textContent = fmt(d.incentive_target);
+
+  const detail = d.incentive_detail || {};
+  const ratePercent = detail.rate != null ? Math.round(detail.rate * 100) + "%" : "-";
+
+  bodyEl.innerHTML = `
+    <table class="inc-table">
+      <tr><td>対象月（2ヶ月前）</td><td>${detail.prior_month || "-"}</td></tr>
+      <tr><td>当該月の営業日数</td><td>${detail.prior_business_days ?? "-"}日</td></tr>
+      <tr><td>出勤日数</td><td>${detail.prior_work_days ?? "-"}日</td></tr>
+      <tr><td>休み日数</td><td>${detail.rest_days ?? "-"}日</td></tr>
+      <tr><td>売上比重</td><td>${ratePercent}</td></tr>
+      <tr><td>実費交通費</td><td>${fmt(detail.commute_allowance)}</td></tr>
+      <tr><td>日割り目標金額</td><td>${fmt(detail.daily_target)}</td></tr>
+    </table>
+    <div class="inc-formula">
+      日割り目標金額 = (時給×8 + 社保3,150円 + 実費交通費) × 売上比重<br>
+      インセンティブ目標 = 日割り目標金額 × 出勤日数（${detail.prior_month || "-"}実績）
+    </div>
+  `;
+}
+
 function renderPage(d) {
   document.getElementById("staff-name").textContent = d.name;
   document.getElementById("staff-rank").textContent = d.rank + " / " + d.site;
@@ -312,6 +363,9 @@ function renderPage(d) {
 
   // FB内訳
   renderFbBreakdown(d);
+
+  // インセンティブ目標
+  renderIncentive(d);
 
   // ドーナツ
   const circumference = 490;
