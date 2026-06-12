@@ -506,7 +506,7 @@ async function uploadApo(file) {
   const wb = XLSX.read(buf, { type: "array", cellDates: true });
   const ws = wb.Sheets[wb.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json(ws, { raw: false, dateNF: "yyyy/mm/dd" });
-  const rawRecords = rows.map(r => ({
+ const rawRecords = rows.map(r => ({
     appointment_id: String(r["アポイントID"] || "").trim(),
     staff_id: String(r["社員番号"] || "").trim(),
     acquired_date: r["取得日"] ? formatDate(r["取得日"]) : null,
@@ -514,6 +514,8 @@ async function uploadApo(file) {
     cancel_date: String(r["キャンセル受付日"] || "").trim() || null,
     fb_date: r["フィードバック受付日"] ? formatDate(r["フィードバック受付日"]) : null,
     fb_amount: parseInt(String(r["達成金額"] || "0").replace(/,/g, "")) || 0,
+    apo_type: String(r["種別"] || "").trim() || null,
+    resend_status: String(r["再送当否"] || "").trim() || null,
   })).filter(r => r.staff_id);
   const seen = new Set();
   const records = rawRecords.filter(r => {
